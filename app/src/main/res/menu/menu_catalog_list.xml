@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.imozerov.catalogapp.ui.CatalogListActivity">
+    <item
+        android:id="@+id/action_add_item"
+        android:title="@string/action_add_item"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_add_category"
+        android:title="@string/action_add_category"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_share_app"
+        android:title="@string/action_share_app"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/action_about"
+        app:showAsAction="never" />
+</menu>

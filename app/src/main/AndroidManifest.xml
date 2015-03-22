@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.imozerov.catalogapp" >
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".ui.CatalogExpandableListActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.ItemActivity"
+            android:label="@string/title_activity_item"
+            android:parentActivityName=".ui.CatalogExpandableListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.imozerov.catalogapp.ui.CatalogExpandableListActivity" />
+        </activity>
+        <activity
+            android:name=".ui.AddItemActivity"
+            android:label="@string/title_activity_add_item"
+            android:parentActivityName=".ui.CatalogExpandableListActivity" >
+        </activity>
+    </application>
+
+</manifest>
