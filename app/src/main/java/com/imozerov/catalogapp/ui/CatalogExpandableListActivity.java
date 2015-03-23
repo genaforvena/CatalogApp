@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.RuntimeDatabase;
@@ -55,6 +57,10 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
         mCatalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
         mExpandableListView.setAdapter(mCatalogExpandableListViewAdapter);
 
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
         Intent intent = getIntent();
         if (intent != null) {
             Item deletedItem = intent.getParcelableExtra(ItemActivity.DELETED_ITEM_KEY);
@@ -63,6 +69,7 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
                 return;
             }
             RuntimeDatabase.getInstance().deleteItem(deletedCategory, deletedItem);
+            mCatalogExpandableListViewAdapter.notifyDataSetChanged();
         }
     }
 
