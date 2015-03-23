@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -17,6 +18,9 @@ import com.imozerov.catalogapp.models.Item;
 
 public class AddItemActivity extends ActionBarActivity {
     private static final String TAG = AddItemActivity.class.getName();
+
+    public static final String CATEGORY_KEY = TAG + ".category";
+    public static final String ITEM_KEY = TAG + ".item";
 
     private EditText mNameField;
     private EditText mDescriptionField;
@@ -44,11 +48,14 @@ public class AddItemActivity extends ActionBarActivity {
                     return;
                 }
                 Item newItem = new Item(mNameField.getText().toString(), true, mDescriptionField.getText().toString());
-                RuntimeDatabase.getInstance().addItem((Category) mCategorySpinner.getSelectedItem(), newItem);
+                Category itemsCategory = (Category) mCategorySpinner.getSelectedItem();
 
                 Intent intent = new Intent();
+                intent.putExtra(CATEGORY_KEY, itemsCategory);
+                intent.putExtra(ITEM_KEY, newItem);
                 setResult(RESULT_OK, intent);
                 finish();
+                Log.i(TAG, "Created new item " + newItem);
             }
         });
     }

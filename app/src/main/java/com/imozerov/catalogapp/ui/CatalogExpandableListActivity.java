@@ -12,14 +12,18 @@ import android.widget.Toast;
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.RuntimeDatabase;
+import com.imozerov.catalogapp.models.Category;
+import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.adapters.CatalogExpandableListViewAdapter;
 
 
 public class CatalogExpandableListActivity extends ActionBarActivity {
     private final static String TAG = CatalogExpandableListActivity.class.getName();
     public static final int REQUEST_CODE_ADD_ITEM = 112;
+    private static final int REQUEST_CODE_ADD_CATEGORY = 114;
 
     private ExpandableListView mExpandableListView;
+    private CatalogExpandableListViewAdapter mCatalogExpandableListViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +31,31 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
         setContentView(R.layout.activity_catalog_list);
         mExpandableListView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
 
-        CatalogExpandableListViewAdapter catalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
-        mExpandableListView.setAdapter(catalogExpandableListViewAdapter);
+        mCatalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
+        mExpandableListView.setAdapter(mCatalogExpandableListViewAdapter);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "Activity result is received. requestCode: " + requestCode + "; resultCode: " + resultCode + "; data: " + data);
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+        if (data == null) {
+            return;
+        }
+
+        if (requestCode == REQUEST_CODE_ADD_CATEGORY) {
+            Category category = data.getParcelableExtra(AddCategoryActivity.CATEGORY_KEY);
+            RuntimeDatabase.getInstance().addCategory(category);
+        } else if (requestCode == REQUEST_CODE_ADD_ITEM) {
+            Category itemsCategory = data.getParcelableExtra(AddItemActivity.CATEGORY_KEY);
+            Item newItem = data.getParcelableExtra(AddItemActivity.ITEM_KEY);
+            RuntimeDatabase.getInstance().addItem(itemsCategory, newItem);
+        }
+
+        mCatalogExpandableListViewAdapter.notifyDataSetChanged();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -49,7 +74,8 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
             return true;
         } else if (id == R.id.action_add_category) {
             Log.i(TAG, "Adding category");
-            Toast.makeText(this, "Adding category", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, AddCategoryActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_ADD_CATEGORY);
             return true;
         } else if (id == R.id.action_share_app) {
                 Log.i(TAG, "Sharing app");

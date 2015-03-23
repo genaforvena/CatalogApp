@@ -29,6 +29,10 @@
             android:label="@string/title_activity_add_item"
             android:parentActivityName=".ui.CatalogExpandableListActivity" >
         </activity>
+        <activity
+            android:name=".ui.AddCategoryActivity"
+            android:label="@string/title_activity_add_category" >
+        </activity>
     </application>
 
 </manifest>
