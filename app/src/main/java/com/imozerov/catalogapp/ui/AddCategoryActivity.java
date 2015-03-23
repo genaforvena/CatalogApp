@@ -14,10 +14,11 @@ import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.utils.ImageUtils;
+import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
 import java.util.ArrayList;
 
-public class AddCategoryActivity extends ActionBarActivity {
+public class AddCategoryActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddCategoryActivity.class.getName();
 
     public static final String CATEGORY_KEY = TAG + ".category";
@@ -38,21 +39,7 @@ public class AddCategoryActivity extends ActionBarActivity {
         mImageField = (ImageView) findViewById(R.id.activity_add_category_image);
         mDoneButton = (Button) findViewById(R.id.activity_add_category_done_button);
 
-        mDoneButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isUserInputValid()) {
-                    return;
-                }
-                Category category = new Category(mNameField.getText().toString(), mSelectedImagePath, new ArrayList<Item>(), true);
-
-                Intent intent = new Intent();
-                intent.putExtra(CATEGORY_KEY, category);
-                setResult(RESULT_OK, intent);
-                finish();
-                Log.i(TAG, "Created new category " + category);
-            }
-        });
+        mDoneButton.setOnClickListener(this);
 
         mImageField.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,7 +50,7 @@ public class AddCategoryActivity extends ActionBarActivity {
         });
 
         if (mSelectedImagePath != null) {
-            mImageField.setImageBitmap(ImageUtils.createBigImageBitmap(mSelectedImagePath));
+            new LoadImageBitmapAsyncTask(mImageField).execute(mSelectedImagePath);
         }
     }
 
@@ -85,5 +72,19 @@ public class AddCategoryActivity extends ActionBarActivity {
             isValid = false;
         }
         return isValid;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isUserInputValid()) {
+            return;
+        }
+        Category category = new Category(mNameField.getText().toString(), mSelectedImagePath, new ArrayList<Item>(), true);
+
+        Intent intent = new Intent();
+        intent.putExtra(CATEGORY_KEY, category);
+        setResult(RESULT_OK, intent);
+        finish();
+        Log.i(TAG, "Created new category " + category);
     }
 }

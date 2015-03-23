@@ -23,7 +23,7 @@ import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.adapters.CatalogExpandableListViewAdapter;
 
 
-public class CatalogExpandableListActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener {
+public class CatalogExpandableListActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
     public static final int REQUEST_CODE_ADD_ITEM = 112;
     private final static String TAG = CatalogExpandableListActivity.class.getName();
     private static final int REQUEST_CODE_ADD_CATEGORY = 114;
@@ -45,25 +45,7 @@ public class CatalogExpandableListActivity extends ActionBarActivity implements 
 
         mExpandableListView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
 
-        mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Item from list view was clicked.");
-
-                    final Category currentCategory = mCatalogExpandableListViewAdapter.getGroup(groupPosition);
-                    final Item currentItem = currentCategory.items.get(childPosition);
-
-                    Intent intent = new Intent(CatalogExpandableListActivity.this, ItemActivity.class);
-                    intent.putExtra(ItemActivity.ITEM_KEY, currentItem);
-                    intent.putExtra(ItemActivity.CATEGORY_KEY, currentCategory);
-                    startActivity(intent);
-                    return true;
-                }
-
-                return false;
-            }
-        });
+        mExpandableListView.setOnChildClickListener(this);
 
         mCatalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
         mExpandableListView.setAdapter(mCatalogExpandableListViewAdapter);
@@ -164,6 +146,24 @@ public class CatalogExpandableListActivity extends ActionBarActivity implements 
     public boolean onClose() {
         mCatalogExpandableListViewAdapter.filterData("");
         expandAll();
+        return false;
+    }
+
+    @Override
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Item from list view was clicked.");
+
+            final Category currentCategory = mCatalogExpandableListViewAdapter.getGroup(groupPosition);
+            final Item currentItem = currentCategory.items.get(childPosition);
+
+            Intent intent = new Intent(CatalogExpandableListActivity.this, ItemActivity.class);
+            intent.putExtra(ItemActivity.ITEM_KEY, currentItem);
+            intent.putExtra(ItemActivity.CATEGORY_KEY, currentCategory);
+            startActivity(intent);
+            return true;
+        }
+
         return false;
     }
 }

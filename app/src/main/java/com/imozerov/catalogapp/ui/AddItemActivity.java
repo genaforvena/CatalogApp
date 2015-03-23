@@ -24,7 +24,7 @@ import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.utils.ImageUtils;
 
-public class AddItemActivity extends ActionBarActivity {
+public class AddItemActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddItemActivity.class.getName();
 
     public static final String CATEGORY_KEY = TAG + ".category";
@@ -66,23 +66,7 @@ public class AddItemActivity extends ActionBarActivity {
             }
         });
 
-        mDoneButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isUserInputValid()) {
-                    return;
-                }
-                Item newItem = new Item(mNameField.getText().toString(), true, mDescriptionField.getText().toString(), mSelectedImageUri);
-                Category itemsCategory = (Category) mCategorySpinner.getSelectedItem();
-
-                Intent intent = new Intent();
-                intent.putExtra(CATEGORY_KEY, itemsCategory);
-                intent.putExtra(ITEM_KEY, newItem);
-                setResult(RESULT_OK, intent);
-                finish();
-                Log.i(TAG, "Created new item " + newItem);
-            }
-        });
+        mDoneButton.setOnClickListener(this);
     }
 
     @Override
@@ -107,5 +91,21 @@ public class AddItemActivity extends ActionBarActivity {
             isValid = false;
         }
         return isValid;
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (!isUserInputValid()) {
+            return;
+        }
+        Item newItem = new Item(mNameField.getText().toString(), true, mDescriptionField.getText().toString(), mSelectedImageUri);
+        Category itemsCategory = (Category) mCategorySpinner.getSelectedItem();
+
+        Intent intent = new Intent();
+        intent.putExtra(CATEGORY_KEY, itemsCategory);
+        intent.putExtra(ITEM_KEY, newItem);
+        setResult(RESULT_OK, intent);
+        finish();
+        Log.i(TAG, "Created new item " + newItem);
     }
 }
