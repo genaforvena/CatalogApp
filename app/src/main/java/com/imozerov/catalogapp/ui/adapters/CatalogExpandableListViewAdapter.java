@@ -1,10 +1,6 @@
 package com.imozerov.catalogapp.ui.adapters;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,14 +9,12 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
-import com.imozerov.catalogapp.ui.ItemActivity;
-import com.imozerov.catalogapp.utils.ImageUtils;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,32 +23,34 @@ import java.util.List;
 public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter {
     private final static String TAG = CatalogExpandableListViewAdapter.class.getName();
 
-    private List<Category> mGroups;
+    private List<Category> mCategories;
+    private List<Category> mOriginalCategories;
     private Context mContext;
 
-    public CatalogExpandableListViewAdapter(Context context, List<Category> groups) {
+    public CatalogExpandableListViewAdapter(Context context, List<Category> categories) {
         mContext = context;
-        mGroups = groups;
+        mCategories = categories;
+        mOriginalCategories = new ArrayList<>(categories);
     }
 
     @Override
     public int getGroupCount() {
-        return mGroups.size();
+        return mCategories.size();
     }
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return mGroups.get(groupPosition).items.size();
+        return mCategories.get(groupPosition).items.size();
     }
 
     @Override
     public Category getGroup(int groupPosition) {
-        return mGroups.get(groupPosition);
+        return mCategories.get(groupPosition);
     }
 
     @Override
     public Item getChild(int groupPosition, int childPosition) {
-        return mGroups.get(groupPosition).items.get(childPosition);
+        return mCategories.get(groupPosition).items.get(childPosition);
     }
 
     @Override
@@ -82,11 +78,11 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
         }
 
         TextView categoryName = (TextView) convertView.findViewById(R.id.item_category_name);
-        categoryName.setText(mGroups.get(groupPosition).name);
+        categoryName.setText(mCategories.get(groupPosition).name);
 
-        if (mGroups.get(groupPosition).imageUri != null) {
+        if (mCategories.get(groupPosition).imageUri != null) {
             ImageView categoryPic = (ImageView) convertView.findViewById(R.id.item_category_image);
-            new LoadImageBitmapAsyncTask(categoryPic).execute(mGroups.get(groupPosition).imageUri);
+            new LoadImageBitmapAsyncTask(categoryPic).execute(mCategories.get(groupPosition).imageUri);
         }
 
         return convertView;
@@ -101,7 +97,7 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
             convertView = inflater.inflate(R.layout.item_item, null);
         }
 
-        Item currentItem = mGroups.get(groupPosition).items.get(childPosition);
+        Item currentItem = mCategories.get(groupPosition).items.get(childPosition);
 
         TextView itemName = (TextView) convertView.findViewById(R.id.item_item_name);
         itemName.setText(currentItem.name);
@@ -117,5 +113,36 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
+    }
+
+    public void filterData(String query){
+
+        query = query.toLowerCase();
+        Log.v(TAG, "Filtering data " + mCategories.size());
+        mCategories.clear();
+
+        if(query.isEmpty()){
+            mCategories.addAll(mOriginalCategories);
+        }
+        else {
+
+            for(Category category : mOriginalCategories){
+
+                List<Item> itemsList = category.items;
+                List<Item> newList = new ArrayList<>();
+                for(Item item: itemsList){
+                    if(item.name.toLowerCase().contains(query)){
+                        newList.add(item);
+                    }
+                }
+                if(newList.size() > 0){
+                    Category nCategory = new Category(category.name, category.imageUri, newList, category.isUserDefined);
+                    mCategories.add(nCategory);
+                }
+            }
+        }
+
+        notifyDataSetChanged();
+
     }
 }

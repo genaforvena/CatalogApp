@@ -1,5 +1,7 @@
 package com.imozerov.catalogapp.ui;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -8,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
@@ -20,18 +23,26 @@ import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.adapters.CatalogExpandableListViewAdapter;
 
 
-public class CatalogExpandableListActivity extends ActionBarActivity {
+public class CatalogExpandableListActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener {
     public static final int REQUEST_CODE_ADD_ITEM = 112;
     private final static String TAG = CatalogExpandableListActivity.class.getName();
     private static final int REQUEST_CODE_ADD_CATEGORY = 114;
 
     private ExpandableListView mExpandableListView;
     private CatalogExpandableListViewAdapter mCatalogExpandableListViewAdapter;
+    private SearchView mSearchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog_list);
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        mSearchView = (SearchView) findViewById(R.id.activity_catalog_list_search);
+        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        mSearchView.setIconifiedByDefault(false);
+        mSearchView.setOnQueryTextListener(this);
+        mSearchView.setOnCloseListener(this);
+
         mExpandableListView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
 
         mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
@@ -126,5 +137,33 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void expandAll() {
+        int count = mCatalogExpandableListViewAdapter.getGroupCount();
+        for (int i = 0; i < count; i++){
+            mExpandableListView.expandGroup(i);
+        }
+    }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        mCatalogExpandableListViewAdapter.filterData(query);
+        expandAll();
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        mCatalogExpandableListViewAdapter.filterData(query);
+        expandAll();
+        return false;
+    }
+
+    @Override
+    public boolean onClose() {
+        mCatalogExpandableListViewAdapter.filterData("");
+        expandAll();
+        return false;
     }
 }
