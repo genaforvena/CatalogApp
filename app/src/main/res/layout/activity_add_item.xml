@@ -22,6 +22,14 @@
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/activity_add_item_header" />
 
+
+    <ImageView
+        android:id="@+id/activity_add_item_image"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
+        android:layout_below="@+id/activity_add_item_category"/>
+
     <EditText
         android:id="@+id/activity_add_item_name"
         android:hint="Item name"
@@ -29,7 +37,7 @@
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/activity_add_item_category" />
+        android:layout_below="@+id/activity_add_item_image" />
 
     <EditText
         android:id="@+id/activity_add_item_description"

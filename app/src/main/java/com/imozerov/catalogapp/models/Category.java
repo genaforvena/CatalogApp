@@ -12,11 +12,11 @@ import java.util.List;
  */
 public class Category implements Parcelable {
     public final String name;
-    public final Uri imageUri;
+    public final String imageUri;
     public final List<Item> items;
     public final boolean isUserDefined;
 
-    public Category(String name, Uri imageUri, List<Item> items, boolean isUserDefined) {
+    public Category(String name,String imageUri, List<Item> items, boolean isUserDefined) {
         this.name = name;
         this.imageUri = imageUri;
         this.items = items;
@@ -53,7 +53,7 @@ public class Category implements Parcelable {
 
     protected Category(Parcel in) {
         name = in.readString();
-        imageUri = (Uri) in.readValue(Uri.class.getClassLoader());
+        imageUri = in.readString();
         if (in.readByte() == 0x01) {
             items = new ArrayList<Item>();
             in.readList(items, Item.class.getClassLoader());
@@ -71,7 +71,7 @@ public class Category implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
-        dest.writeValue(imageUri);
+        dest.writeString(imageUri);
         if (items == null) {
             dest.writeByte((byte) (0x00));
         } else {

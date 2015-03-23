@@ -2,19 +2,21 @@ package com.imozerov.catalogapp.ui.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.ItemActivity;
+import com.imozerov.catalogapp.utils.ImageUtils;
 
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
     private List<Category> mGroups;
     private Context mContext;
 
-    public CatalogExpandableListViewAdapter (Context context, List<Category> groups){
+    public CatalogExpandableListViewAdapter(Context context, List<Category> groups) {
         mContext = context;
         mGroups = groups;
     }
@@ -43,12 +45,12 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
     }
 
     @Override
-    public Object getGroup(int groupPosition) {
+    public Category getGroup(int groupPosition) {
         return mGroups.get(groupPosition);
     }
 
     @Override
-    public Object getChild(int groupPosition, int childPosition) {
+    public Item getChild(int groupPosition, int childPosition) {
         return mGroups.get(groupPosition).items.get(childPosition);
     }
 
@@ -79,6 +81,11 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
         TextView categoryName = (TextView) convertView.findViewById(R.id.item_category_name);
         categoryName.setText(mGroups.get(groupPosition).name);
 
+        if (mGroups.get(groupPosition).imageUri != null) {
+            ImageView categoryPic = (ImageView) convertView.findViewById(R.id.item_category_image);
+            categoryPic.setImageBitmap(ImageUtils.createSmallImageBitmap(mGroups.get(groupPosition).imageUri));
+        }
+
         return convertView;
 
     }
@@ -91,23 +98,15 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
             convertView = inflater.inflate(R.layout.item_item, null);
         }
 
-        final Category currentCategory = mGroups.get(groupPosition);
-        final Item currentItem = currentCategory.items.get(childPosition);
+        Item currentItem = mGroups.get(groupPosition).items.get(childPosition);
 
         TextView itemName = (TextView) convertView.findViewById(R.id.item_item_name);
         itemName.setText(currentItem.name);
-        itemName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "Item from list view was clicked.");
-                    Intent intent = new Intent(mContext, ItemActivity.class);
-                    intent.putExtra(ItemActivity.ITEM_KEY, currentItem);
-                    intent.putExtra(ItemActivity.CATEGORY_KEY, currentCategory);
-                    mContext.startActivity(intent);
-                }
-            }
-        });
+
+        if (currentItem.imageUri != null) {
+            ImageView itemImage = (ImageView) convertView.findViewById(R.id.item_item_image);
+            itemImage.setImageBitmap(ImageUtils.createSmallImageBitmap(currentItem.imageUri));
+        }
 
         return convertView;
     }

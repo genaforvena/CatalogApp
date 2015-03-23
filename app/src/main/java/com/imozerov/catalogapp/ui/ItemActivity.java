@@ -1,6 +1,7 @@
 package com.imozerov.catalogapp.ui;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.utils.ImageUtils;
 
 public class ItemActivity extends ActionBarActivity {
     private static final String TAG = ItemActivity.class.getName();
@@ -42,6 +44,9 @@ public class ItemActivity extends ActionBarActivity {
 
         mItemName.setText(mItem.name);
         mItemDescription.setText(mItem.description);
+        if (mItem.imageUri != null) {
+            mItemImage.setImageBitmap(ImageUtils.createSmallImageBitmap(mItem.imageUri));
+        }
     }
 
     @Override

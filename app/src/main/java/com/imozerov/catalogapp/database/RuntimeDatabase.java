@@ -24,9 +24,9 @@ public class RuntimeDatabase implements IDatabase {
     private RuntimeDatabase() {
         mCategories = new ArrayList<>();
 
-        Item item1 = new Item("Item1", false, "Some meaningful description");
-        Item item2 = new Item("Item2", false, "Some meaningful description");
-        Item item3 = new Item("Item3", false, "Some meaningful description");
+        Item item1 = new Item("Item1", false, "Some meaningful description", null);
+        Item item2 = new Item("Item2", false, "Some meaningful description", null);
+        Item item3 = new Item("Item3", false, "Some meaningful description", null);
         List<Item> items = new ArrayList<>();
         items.add(item1);
         items.add(item2);

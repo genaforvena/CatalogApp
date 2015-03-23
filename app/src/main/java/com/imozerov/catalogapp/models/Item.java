@@ -10,11 +10,13 @@ public class Item implements Parcelable {
     public final String name;
     public final boolean isUserDefined;
     public final String description;
+    public final String imageUri;
 
-    public Item(String name, boolean isUserDefined, String description) {
+    public Item(String name, boolean isUserDefined, String description, String imageUri) {
         this.name = name;
         this.isUserDefined = isUserDefined;
         this.description = description;
+        this.imageUri = imageUri;
     }
 
     @Override
@@ -49,6 +51,7 @@ public class Item implements Parcelable {
         name = in.readString();
         isUserDefined = in.readByte() != 0x00;
         description = in.readString();
+        imageUri = in.readString();
     }
 
     @Override
@@ -61,6 +64,7 @@ public class Item implements Parcelable {
         dest.writeString(name);
         dest.writeByte((byte) (isUserDefined ? 0x01 : 0x00));
         dest.writeString(description);
+        dest.writeString(imageUri);
     }
 
     public static final Parcelable.Creator<Item> CREATOR = new Parcelable.Creator<Item>() {

@@ -6,9 +6,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.RuntimeDatabase;
 import com.imozerov.catalogapp.models.Category;
@@ -29,6 +31,26 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog_list);
         mExpandableListView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
+
+        mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "Item from list view was clicked.");
+
+                    final Category currentCategory = mCatalogExpandableListViewAdapter.getGroup(groupPosition);
+                    final Item currentItem = currentCategory.items.get(childPosition);
+
+                    Intent intent = new Intent(CatalogExpandableListActivity.this, ItemActivity.class);
+                    intent.putExtra(ItemActivity.ITEM_KEY, currentItem);
+                    intent.putExtra(ItemActivity.CATEGORY_KEY, currentCategory);
+                    startActivity(intent);
+                    return true;
+                }
+
+                return false;
+            }
+        });
 
         mCatalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
         mExpandableListView.setAdapter(mCatalogExpandableListViewAdapter);

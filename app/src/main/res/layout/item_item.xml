@@ -4,9 +4,17 @@
     android:layout_height="match_parent"
     >
 
+    <ImageView
+        android:id="@+id/item_item_image"
+        android:src="@drawable/abc_switch_thumb_material"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginLeft="30dp" />
+
     <TextView
         android:id="@+id/item_item_name"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="10dp" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="item"/>
 </LinearLayout>
