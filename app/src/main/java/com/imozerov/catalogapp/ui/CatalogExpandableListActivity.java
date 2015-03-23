@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
-import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.RuntimeDatabase;
 import com.imozerov.catalogapp.models.Category;
@@ -18,8 +17,8 @@ import com.imozerov.catalogapp.ui.adapters.CatalogExpandableListViewAdapter;
 
 
 public class CatalogExpandableListActivity extends ActionBarActivity {
-    private final static String TAG = CatalogExpandableListActivity.class.getName();
     public static final int REQUEST_CODE_ADD_ITEM = 112;
+    private final static String TAG = CatalogExpandableListActivity.class.getName();
     private static final int REQUEST_CODE_ADD_CATEGORY = 114;
 
     private ExpandableListView mExpandableListView;
@@ -33,6 +32,16 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
 
         mCatalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
         mExpandableListView.setAdapter(mCatalogExpandableListViewAdapter);
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Item deletedItem = intent.getParcelableExtra(ItemActivity.DELETED_ITEM_KEY);
+            Category deletedCategory = intent.getParcelableExtra(ItemActivity.DELETED_CATEGORY_KEY);
+            if (deletedItem == null && deletedCategory == null) {
+                return;
+            }
+            RuntimeDatabase.getInstance().deleteItem(deletedCategory, deletedItem);
+        }
     }
 
     @Override
@@ -78,7 +87,7 @@ public class CatalogExpandableListActivity extends ActionBarActivity {
             startActivityForResult(intent, REQUEST_CODE_ADD_CATEGORY);
             return true;
         } else if (id == R.id.action_share_app) {
-                Log.i(TAG, "Sharing app");
+            Log.i(TAG, "Sharing app");
             Toast.makeText(this, "Sharing app", Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_about) {

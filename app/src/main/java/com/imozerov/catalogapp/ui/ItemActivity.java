@@ -1,7 +1,8 @@
 package com.imozerov.catalogapp.ui;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,23 +11,30 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.imozerov.catalogapp.R;
+import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 
 public class ItemActivity extends ActionBarActivity {
     private static final String TAG = ItemActivity.class.getName();
 
     public static final String ITEM_KEY = TAG + ".item";
+    public static final String CATEGORY_KEY = TAG + ".category";
+    public static final String DELETED_ITEM_KEY = TAG + ".deletedItem";
+    public static final String DELETED_CATEGORY_KEY = TAG + ".deletedCategory";
+
 
     private TextView mItemName;
     private ImageView mItemImage;
     private TextView mItemDescription;
     private Item mItem;
+    private Category mCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item);
-        mItem = (Item) getIntent().getParcelableExtra(ITEM_KEY);
+        mItem = getIntent().getParcelableExtra(ITEM_KEY);
+        mCategory = getIntent().getParcelableExtra(CATEGORY_KEY);
 
         mItemName = (TextView) findViewById(R.id.activity_item_name);
         mItemImage = (ImageView) findViewById(R.id.activity_item_image);
@@ -51,7 +59,11 @@ public class ItemActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_delete) {
-            Toast.makeText(this, "Deleting item!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, CatalogExpandableListActivity.class);
+            intent.putExtra(DELETED_ITEM_KEY, mItem);
+            intent.putExtra(DELETED_CATEGORY_KEY, mCategory);
+            finish();
+            startActivity(intent);
             return true;
         } else if (id == R.id.action_report) {
             Toast.makeText(this, "Reporting item!", Toast.LENGTH_SHORT).show();

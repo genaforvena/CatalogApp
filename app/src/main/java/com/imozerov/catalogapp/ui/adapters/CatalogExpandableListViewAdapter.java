@@ -91,7 +91,8 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
             convertView = inflater.inflate(R.layout.item_item, null);
         }
 
-        final Item currentItem = mGroups.get(groupPosition).items.get(childPosition);
+        final Category currentCategory = mGroups.get(groupPosition);
+        final Item currentItem = currentCategory.items.get(childPosition);
 
         TextView itemName = (TextView) convertView.findViewById(R.id.item_item_name);
         itemName.setText(currentItem.name);
@@ -102,6 +103,7 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
                     Log.d(TAG, "Item from list view was clicked.");
                     Intent intent = new Intent(mContext, ItemActivity.class);
                     intent.putExtra(ItemActivity.ITEM_KEY, currentItem);
+                    intent.putExtra(ItemActivity.CATEGORY_KEY, currentCategory);
                     mContext.startActivity(intent);
                 }
             }
