@@ -15,6 +15,7 @@ import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.utils.ImageUtils;
+import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
 public class ItemActivity extends ActionBarActivity {
     private static final String TAG = ItemActivity.class.getName();
@@ -45,7 +46,7 @@ public class ItemActivity extends ActionBarActivity {
         mItemName.setText(mItem.name);
         mItemDescription.setText(mItem.description);
         if (mItem.imageUri != null) {
-            mItemImage.setImageBitmap(ImageUtils.createSmallImageBitmap(mItem.imageUri));
+            new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.imageUri);
         }
     }
 

@@ -2,7 +2,9 @@ package com.imozerov.catalogapp.ui.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +19,7 @@ import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.ItemActivity;
 import com.imozerov.catalogapp.utils.ImageUtils;
+import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
 import java.util.List;
 
@@ -83,7 +86,7 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
 
         if (mGroups.get(groupPosition).imageUri != null) {
             ImageView categoryPic = (ImageView) convertView.findViewById(R.id.item_category_image);
-            categoryPic.setImageBitmap(ImageUtils.createSmallImageBitmap(mGroups.get(groupPosition).imageUri));
+            new LoadImageBitmapAsyncTask(categoryPic).execute(mGroups.get(groupPosition).imageUri);
         }
 
         return convertView;
@@ -105,7 +108,7 @@ public class CatalogExpandableListViewAdapter extends BaseExpandableListAdapter 
 
         if (currentItem.imageUri != null) {
             ImageView itemImage = (ImageView) convertView.findViewById(R.id.item_item_image);
-            itemImage.setImageBitmap(ImageUtils.createSmallImageBitmap(currentItem.imageUri));
+            new LoadImageBitmapAsyncTask(itemImage).execute(currentItem.imageUri);
         }
 
         return convertView;
