@@ -3,6 +3,7 @@ package com.imozerov.catalogapp.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -106,6 +107,7 @@ public class CatalogDataSource {
     public Item getItem(long itemId) {
         String query = "select * from " + MySQLiteOpenHelper.TABLE_ITEMS + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_ID + " = " + itemId;
         Cursor cursor = mDatabase.rawQuery(query, null);
+        cursor.moveToFirst();
         return cursorToItem(cursor, null);
     }
 
@@ -118,9 +120,12 @@ public class CatalogDataSource {
         if (cursor == null) {
             return null;
         }
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Cursor is " + DatabaseUtils.dumpCursorToString(cursor));
+        }
         Item item = new Item();
         item.setCategory(category);
-        item.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED)) == 1? true : false);
+        item.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED)) == 1 ? true : false);
         item.setImage(ImageUtils.getImage(cursor.getBlob(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE))));
         item.setId(cursor.getLong(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_ID)));
         item.setName(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_NAME)));
