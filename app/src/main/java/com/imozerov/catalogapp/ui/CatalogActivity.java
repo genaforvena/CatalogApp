@@ -17,24 +17,27 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
-import com.imozerov.catalogapp.database.RuntimeDatabase;
+import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
-import com.imozerov.catalogapp.ui.adapters.CatalogExpandableListViewAdapter;
+import com.imozerov.catalogapp.ui.adapters.CatalogAdapter;
 
 
-public class CatalogExpandableListActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
+public class CatalogActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
     public static final int REQUEST_CODE_ADD_ITEM = 112;
-    private final static String TAG = CatalogExpandableListActivity.class.getName();
+    private final static String TAG = CatalogActivity.class.getName();
     private static final int REQUEST_CODE_ADD_CATEGORY = 114;
 
-    private ExpandableListView mExpandableListView;
-    private CatalogExpandableListViewAdapter mCatalogExpandableListViewAdapter;
+    private ExpandableListView mCatalogView;
+    private CatalogAdapter mCatalogAdapter;
     private SearchView mSearchView;
+    private CatalogDataSource mCatalogDataSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mCatalogDataSource = new CatalogDataSource(this);
+        mCatalogDataSource.open();
         setContentView(R.layout.activity_catalog_list);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         mSearchView = (SearchView) findViewById(R.id.activity_catalog_list_search);
@@ -43,12 +46,12 @@ public class CatalogExpandableListActivity extends ActionBarActivity implements 
         mSearchView.setOnQueryTextListener(this);
         mSearchView.setOnCloseListener(this);
 
-        mExpandableListView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
+        mCatalogView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
 
-        mExpandableListView.setOnChildClickListener(this);
+        mCatalogView.setOnChildClickListener(this);
 
-        mCatalogExpandableListViewAdapter = new CatalogExpandableListViewAdapter(this, RuntimeDatabase.getInstance().getCategories());
-        mExpandableListView.setAdapter(mCatalogExpandableListViewAdapter);
+        mCatalogAdapter = new CatalogAdapter(mCatalogDataSource.getCategoriesCursor(), this, mCatalogDataSource);
+        mCatalogView.setAdapter(mCatalogAdapter);
 
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -56,14 +59,19 @@ public class CatalogExpandableListActivity extends ActionBarActivity implements 
 
         Intent intent = getIntent();
         if (intent != null) {
-            Item deletedItem = intent.getParcelableExtra(ItemActivity.DELETED_ITEM_KEY);
-            Category deletedCategory = intent.getParcelableExtra(ItemActivity.DELETED_CATEGORY_KEY);
-            if (deletedItem == null && deletedCategory == null) {
+            Item deletedItem = intent.getParcelableExtra(ItemViewActivity.DELETED_ITEM_KEY);
+            if (deletedItem == null) {
                 return;
             }
-            RuntimeDatabase.getInstance().deleteItem(deletedCategory, deletedItem);
-            mCatalogExpandableListViewAdapter.notifyDataSetChanged();
+            mCatalogDataSource.deleteItem(deletedItem);
+            mCatalogAdapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        mCatalogDataSource.close();
+        super.onDestroy();
     }
 
     @Override
@@ -78,14 +86,14 @@ public class CatalogExpandableListActivity extends ActionBarActivity implements 
 
         if (requestCode == REQUEST_CODE_ADD_CATEGORY) {
             Category category = data.getParcelableExtra(AddCategoryActivity.CATEGORY_KEY);
-            RuntimeDatabase.getInstance().addCategory(category);
+            mCatalogDataSource.addCategory(category);
+            mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
         } else if (requestCode == REQUEST_CODE_ADD_ITEM) {
-            Category itemsCategory = data.getParcelableExtra(AddItemActivity.CATEGORY_KEY);
             Item newItem = data.getParcelableExtra(AddItemActivity.ITEM_KEY);
-            RuntimeDatabase.getInstance().addItem(itemsCategory, newItem);
+            mCatalogDataSource.addItem(newItem);
         }
 
-        mCatalogExpandableListViewAdapter.notifyDataSetChanged();
+        mCatalogAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -122,48 +130,43 @@ public class CatalogExpandableListActivity extends ActionBarActivity implements 
     }
 
     private void expandAll() {
-        int count = mCatalogExpandableListViewAdapter.getGroupCount();
-        for (int i = 0; i < count; i++){
-            mExpandableListView.expandGroup(i);
+        int count = mCatalogAdapter.getGroupCount();
+        for (int i = 0; i < count; i++) {
+            mCatalogView.expandGroup(i);
         }
     }
 
     @Override
     public boolean onQueryTextChange(String query) {
-        mCatalogExpandableListViewAdapter.filterData(query);
+        mCatalogAdapter.filterData(query);
         expandAll();
-        return false;
+        return true;
     }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        mCatalogExpandableListViewAdapter.filterData(query);
+        mCatalogAdapter.filterData(query);
+
         expandAll();
-        return false;
+        return true;
     }
 
     @Override
     public boolean onClose() {
-        mCatalogExpandableListViewAdapter.filterData("");
+        mCatalogAdapter.filterData("");
         expandAll();
-        return false;
+        return true;
     }
 
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Item from list view was clicked.");
-
-            final Category currentCategory = mCatalogExpandableListViewAdapter.getGroup(groupPosition);
-            final Item currentItem = currentCategory.items.get(childPosition);
-
-            Intent intent = new Intent(CatalogExpandableListActivity.this, ItemActivity.class);
-            intent.putExtra(ItemActivity.ITEM_KEY, currentItem);
-            intent.putExtra(ItemActivity.CATEGORY_KEY, currentCategory);
-            startActivity(intent);
-            return true;
+            Log.d(TAG, "Item from list view was clicked. Id = " + id);
         }
-
-        return false;
+        Item clickedItem = mCatalogDataSource.getItem(id);
+        Intent intent = new Intent(CatalogActivity.this, ItemViewActivity.class);
+        intent.putExtra(ItemViewActivity.ITEM_KEY, clickedItem);
+        startActivity(intent);
+        return true;
     }
 }

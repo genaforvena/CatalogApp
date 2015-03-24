@@ -1,5 +1,6 @@
 package com.imozerov.catalogapp.models;
 
+import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -7,16 +8,21 @@ import android.os.Parcelable;
  * Created by imozerov on 22.03.2015.
  */
 public class Item implements Parcelable {
-    public final String name;
-    public final boolean isUserDefined;
-    public final String description;
-    public final String imageUri;
+    private long mId;
+    private String mName;
+    private boolean mIsUserDefined;
+    private String mDescription;
+    private Bitmap mImage;
+    private Category mCategory;
 
-    public Item(String name, boolean isUserDefined, String description, String imageUri) {
-        this.name = name;
-        this.isUserDefined = isUserDefined;
-        this.description = description;
-        this.imageUri = imageUri;
+    public Item() {}
+
+    public Item(long id, String name, boolean isUserDefined, String description, Bitmap image, Category category) {
+        setId(id);
+        setName(name);
+        setUserDefined(isUserDefined);
+        setDescription(description);
+        setImage(image);
     }
 
     @Override
@@ -26,32 +32,34 @@ public class Item implements Parcelable {
 
         Item item = (Item) o;
 
-        if (isUserDefined != item.isUserDefined) return false;
-        if (name != null ? !name.equals(item.name) : item.name != null) return false;
+        if (mId != item.mId) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (isUserDefined ? 1 : 0);
-        return result;
+        return (int) (mId ^ (mId >>> 32));
     }
 
     @Override
     public String toString() {
         return "Item{" +
-                "name='" + name + '\'' +
-                ", isUserDefined=" + isUserDefined +
+                "mId=" + mId +
+                ", mName='" + mName + '\'' +
+                ", mIsUserDefined=" + mIsUserDefined +
+                ", mDescription='" + mDescription + '\'' +
+                ", mImage='" + mImage + '\'' +
                 '}';
     }
 
     protected Item(Parcel in) {
-        name = in.readString();
-        isUserDefined = in.readByte() != 0x00;
-        description = in.readString();
-        imageUri = in.readString();
+        mId = in.readLong();
+        mName = in.readString();
+        mIsUserDefined = in.readByte() != 0x00;
+        mDescription = in.readString();
+        mImage = (Bitmap) in.readValue(Bitmap.class.getClassLoader());
+        mCategory = (Category) in.readValue(Category.class.getClassLoader());
     }
 
     @Override
@@ -61,12 +69,15 @@ public class Item implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
-        dest.writeByte((byte) (isUserDefined ? 0x01 : 0x00));
-        dest.writeString(description);
-        dest.writeString(imageUri);
+        dest.writeLong(mId);
+        dest.writeString(mName);
+        dest.writeByte((byte) (mIsUserDefined ? 0x01 : 0x00));
+        dest.writeString(mDescription);
+        dest.writeValue(mImage);
+        dest.writeValue(mCategory);
     }
 
+    @SuppressWarnings("unused")
     public static final Parcelable.Creator<Item> CREATOR = new Parcelable.Creator<Item>() {
         @Override
         public Item createFromParcel(Parcel in) {
@@ -78,4 +89,52 @@ public class Item implements Parcelable {
             return new Item[size];
         }
     };
+
+    public long getId() {
+        return mId;
+    }
+
+    public void setId(long id) {
+        mId = id;
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public void setName(String name) {
+        mName = name;
+    }
+
+    public boolean isUserDefined() {
+        return mIsUserDefined;
+    }
+
+    public void setUserDefined(boolean isUserDefined) {
+        mIsUserDefined = isUserDefined;
+    }
+
+    public String getDescription() {
+        return mDescription;
+    }
+
+    public void setDescription(String description) {
+        mDescription = description;
+    }
+
+    public Bitmap getImage() {
+        return mImage;
+    }
+
+    public void setImage(Bitmap image) {
+        mImage = image;
+    }
+
+    public Category getCategory() {
+        return mCategory;
+    }
+
+    public void setCategory(Category category) {
+        mCategory = category;
+    }
 }

@@ -8,6 +8,8 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import java.io.ByteArrayOutputStream;
+
 /**
  * Created by imozerov on 23.03.2015.
  */
@@ -67,5 +69,23 @@ public class ImageUtils {
         }
 
         return inSampleSize;
+    }
+
+    // convert from bitmap to byte array
+    public static byte[] getBytes(Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
+        return stream.toByteArray();
+    }
+
+    // convert from byte array to bitmap
+    public static Bitmap getImage(byte[] image) {
+        if (image == null) {
+            return null;
+        }
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 }

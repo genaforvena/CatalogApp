@@ -79,7 +79,9 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
         if (!isUserInputValid()) {
             return;
         }
-        Category category = new Category(mNameField.getText().toString(), mSelectedImagePath, new ArrayList<Item>(), true);
+        Category category = new Category();
+        category.setName(mNameField.getText().toString());
+        category.setUserDefined(true);
 
         Intent intent = new Intent();
         intent.putExtra(CATEGORY_KEY, category);

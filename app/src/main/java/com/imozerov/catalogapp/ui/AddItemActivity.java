@@ -17,9 +17,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
-import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
-import com.imozerov.catalogapp.database.RuntimeDatabase;
+import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.utils.ImageUtils;
@@ -27,7 +26,6 @@ import com.imozerov.catalogapp.utils.ImageUtils;
 public class AddItemActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddItemActivity.class.getName();
 
-    public static final String CATEGORY_KEY = TAG + ".category";
     public static final String ITEM_KEY = TAG + ".item";
     private static final int LOAD_IMAGE = 123;
 
@@ -36,6 +34,7 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
     private Spinner mCategorySpinner;
     private Button mDoneButton;
     private ImageView mImageField;
+    private CatalogDataSource mDatabase;
 
     private String mSelectedImageUri;
 
@@ -50,10 +49,14 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         mCategorySpinner = (Spinner) findViewById(R.id.activity_add_item_category);
         mDoneButton = (Button) findViewById(R.id.activity_add_item_done_button);
 
-        ArrayAdapter<Category> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, RuntimeDatabase.getInstance().getCategories());
+        mDatabase = new CatalogDataSource(this);
+
+        mDatabase.open();
+        ArrayAdapter<Category> spinnerArrayAdapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item, mDatabase.getCategories());
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mCategorySpinner.setAdapter(spinnerArrayAdapter);
 
+        mDatabase.close();
         if (mSelectedImageUri != null) {
             mImageField.setImageBitmap(BitmapFactory.decodeFile(mSelectedImageUri));
         }
@@ -98,11 +101,14 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         if (!isUserInputValid()) {
             return;
         }
-        Item newItem = new Item(mNameField.getText().toString(), true, mDescriptionField.getText().toString(), mSelectedImageUri);
         Category itemsCategory = (Category) mCategorySpinner.getSelectedItem();
 
+        Item newItem = new Item();
+        newItem.setName(mNameField.getText().toString());
+        newItem.setCategory(itemsCategory);
+        newItem.setDescription(mDescriptionField.getText().toString());
+
         Intent intent = new Intent();
-        intent.putExtra(CATEGORY_KEY, itemsCategory);
         intent.putExtra(ITEM_KEY, newItem);
         setResult(RESULT_OK, intent);
         finish();
