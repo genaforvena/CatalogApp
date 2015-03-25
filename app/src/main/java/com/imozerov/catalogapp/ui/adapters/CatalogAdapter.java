@@ -3,12 +3,15 @@ package com.imozerov.catalogapp.ui.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorTreeAdapter;
 import android.widget.Filter;
 import android.widget.FilterQueryProvider;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,23 +24,14 @@ import com.imozerov.catalogapp.models.Item;
  * Created by imozerov on 24.03.2015.
  */
 public class CatalogAdapter extends CursorTreeAdapter {
-
     private final LayoutInflater mInflater;
     private final CatalogDataSource mCatalogDataSource;
-    private final Activity mActivity;
+    private CharSequence mSearchQuery;
 
-    private FilterQueryProvider mFilterQueryProvider;
-
-    public CatalogAdapter(Cursor cursor, Activity activity, CatalogDataSource catalogDataSource) {
-        super(cursor, activity);
-        mInflater = LayoutInflater.from(activity);
+    public CatalogAdapter(Cursor cursor, Context context, CatalogDataSource catalogDataSource) {
+        super(cursor, context);
+        mInflater = LayoutInflater.from(context);
         mCatalogDataSource = catalogDataSource;
-        mActivity = activity;
-        mFilterQueryProvider = new FilterQueryProvider() {
-            public Cursor runQuery(CharSequence constraint) {
-                return mCatalogDataSource.getItemsCursor(constraint);
-            }
-        };
     }
 
     @Override
@@ -45,8 +39,14 @@ public class CatalogAdapter extends CursorTreeAdapter {
         if (groupCursor == null) {
             return null;
         }
-        Category category = CatalogDataSource.cursorToCategory(groupCursor);
-        return mCatalogDataSource.getItemsCursor(category);
+
+        if (TextUtils.isEmpty(mSearchQuery)) {
+            Category category = CatalogDataSource.cursorToCategory(groupCursor);
+            return mCatalogDataSource.getItemsCursor(category);
+        } else {
+            Category category = CatalogDataSource.cursorToCategory(groupCursor);
+            return mCatalogDataSource.getItemsCursor(category, mSearchQuery);
+        }
     }
 
     @Override
@@ -101,13 +101,8 @@ public class CatalogAdapter extends CursorTreeAdapter {
         }
     }
 
-    public void filterData(String query) {
-        final Cursor oldCursor = getChildrenCursor(getCursor());
-        setFilterQueryProvider(mFilterQueryProvider);
-        getFilter().filter(query, new Filter.FilterListener() {
-            public void onFilterComplete(int count) {
-
-            }
-        });
+    public void filterList(String searchQuery) {
+        mSearchQuery = searchQuery;
+        notifyDataSetChanged();
     }
 }

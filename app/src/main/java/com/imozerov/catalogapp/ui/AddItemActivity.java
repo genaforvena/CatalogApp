@@ -1,11 +1,6 @@
 package com.imozerov.catalogapp.ui;
 
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,17 +12,20 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
+import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.utils.ImageUtils;
+import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
 public class AddItemActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddItemActivity.class.getName();
 
     public static final String ITEM_KEY = TAG + ".item";
     private static final int LOAD_IMAGE = 123;
+    public static final String ITEM_IMAGE_PATH = TAG + ".was_image_added";
 
     private EditText mNameField;
     private EditText mDescriptionField;
@@ -36,7 +34,7 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
     private ImageView mImageField;
     private CatalogDataSource mDatabase;
 
-    private String mSelectedImageUri;
+    private String mImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +55,8 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         mCategorySpinner.setAdapter(spinnerArrayAdapter);
 
         mDatabase.close();
-        if (mSelectedImageUri != null) {
-            mImageField.setImageBitmap(BitmapFactory.decodeFile(mSelectedImageUri));
+        if (mImagePath != null) {
+            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
         }
 
         mImageField.setOnClickListener(new View.OnClickListener() {
@@ -77,9 +75,9 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == LOAD_IMAGE && resultCode == RESULT_OK && data != null) {
             String picturePath = ImageUtils.getImagePath(this, data);
-            mSelectedImageUri = picturePath;
-            Log.i(TAG, "New image path is " + mSelectedImageUri);
-            mImageField.setImageBitmap(ImageUtils.createBigImageBitmap(mSelectedImageUri));
+            Log.i(TAG, "New image path is " + picturePath);
+            mImagePath = picturePath;
+            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);;
         }
     }
 
@@ -107,9 +105,13 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         newItem.setName(mNameField.getText().toString());
         newItem.setCategory(itemsCategory);
         newItem.setDescription(mDescriptionField.getText().toString());
+        newItem.setUserDefined(true);
 
         Intent intent = new Intent();
         intent.putExtra(ITEM_KEY, newItem);
+        if (!TextUtils.isEmpty(mImagePath)) {
+            intent.putExtra(ITEM_IMAGE_PATH, mImagePath);
+        }
         setResult(RESULT_OK, intent);
         finish();
         Log.i(TAG, "Created new item " + newItem);

@@ -58,7 +58,6 @@ public class Item implements Parcelable {
         mName = in.readString();
         mIsUserDefined = in.readByte() != 0x00;
         mDescription = in.readString();
-        mImage = (Bitmap) in.readValue(Bitmap.class.getClassLoader());
         mCategory = (Category) in.readValue(Category.class.getClassLoader());
     }
 
@@ -73,7 +72,6 @@ public class Item implements Parcelable {
         dest.writeString(mName);
         dest.writeByte((byte) (mIsUserDefined ? 0x01 : 0x00));
         dest.writeString(mDescription);
-        dest.writeValue(mImage);
         dest.writeValue(mCategory);
     }
 

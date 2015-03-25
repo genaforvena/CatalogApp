@@ -3,8 +3,10 @@ package com.imozerov.catalogapp.ui;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +23,7 @@ import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.adapters.CatalogAdapter;
+import com.imozerov.catalogapp.utils.ImageUtils;
 
 
 public class CatalogActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
@@ -57,14 +60,24 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         if (intent != null) {
-            Item deletedItem = intent.getParcelableExtra(ItemViewActivity.DELETED_ITEM_KEY);
-            if (deletedItem == null) {
-                return;
-            }
-            mCatalogDataSource.deleteItem(deletedItem);
-            mCatalogAdapter.notifyDataSetChanged();
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    Item deletedItem = intent.getParcelableExtra(ItemViewActivity.DELETED_ITEM_KEY);
+                    if (deletedItem == null) {
+                        return null;
+                    }
+                    mCatalogDataSource.deleteItem(deletedItem);
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    mCatalogAdapter.notifyDataSetChanged();
+                }
+            }.execute();
         }
     }
 
@@ -75,7 +88,7 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         Log.i(TAG, "Activity result is received. requestCode: " + requestCode + "; resultCode: " + resultCode + "; data: " + data);
         if (resultCode != RESULT_OK) {
             return;
@@ -85,15 +98,44 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         }
 
         if (requestCode == REQUEST_CODE_ADD_CATEGORY) {
-            Category category = data.getParcelableExtra(AddCategoryActivity.CATEGORY_KEY);
-            mCatalogDataSource.addCategory(category);
-            mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
-        } else if (requestCode == REQUEST_CODE_ADD_ITEM) {
-            Item newItem = data.getParcelableExtra(AddItemActivity.ITEM_KEY);
-            mCatalogDataSource.addItem(newItem);
-        }
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    Category category = data.getParcelableExtra(AddCategoryActivity.CATEGORY_KEY);
+                    String imagePath = data.getStringExtra(AddCategoryActivity.CATEGORY_IMAGE_PATH);
+                    if (!TextUtils.isEmpty(imagePath)) {
+                        category.setImage(ImageUtils.createBigImageBitmap(imagePath));
+                    }
+                    mCatalogDataSource.addCategory(category);
+                    return null;
+                }
 
-        mCatalogAdapter.notifyDataSetChanged();
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
+                    mCatalogAdapter.notifyDataSetChanged();
+                }
+            }.execute();
+
+        } else if (requestCode == REQUEST_CODE_ADD_ITEM) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    Item newItem = data.getParcelableExtra(AddItemActivity.ITEM_KEY);
+                    String imagePath = data.getStringExtra(AddItemActivity.ITEM_IMAGE_PATH);
+                    if (!TextUtils.isEmpty(imagePath)) {
+                        newItem.setImage(ImageUtils.createBigImageBitmap(imagePath));
+                    }
+                    mCatalogDataSource.addItem(newItem);
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    mCatalogAdapter.notifyDataSetChanged();
+                }
+            }.execute();
+        }
     }
 
     @Override
@@ -138,14 +180,14 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
 
     @Override
     public boolean onQueryTextChange(String query) {
-        mCatalogAdapter.filterData(query);
+        mCatalogAdapter.filterList(query);
         expandAll();
         return true;
     }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        mCatalogAdapter.filterData(query);
+        mCatalogAdapter.filterList(query);
 
         expandAll();
         return true;
@@ -153,7 +195,7 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
 
     @Override
     public boolean onClose() {
-        mCatalogAdapter.filterData("");
+        mCatalogAdapter.filterList("");
         expandAll();
         return true;
     }
@@ -163,9 +205,10 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Item from list view was clicked. Id = " + id);
         }
-        Item clickedItem = mCatalogDataSource.getItem(id);
+
+        Item item = mCatalogDataSource.getItem(id);
         Intent intent = new Intent(CatalogActivity.this, ItemViewActivity.class);
-        intent.putExtra(ItemViewActivity.ITEM_KEY, clickedItem);
+        intent.putExtra(ItemViewActivity.ITEM_KEY, item);
         startActivity(intent);
         return true;
     }

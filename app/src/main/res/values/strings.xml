@@ -18,4 +18,5 @@
     <string name="hint_category_name">Category name</string>
     <string name="hint_category_description">Category description</string>
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="add_category_header">Add category</string>
 </resources>

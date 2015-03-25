@@ -12,23 +12,21 @@ import android.widget.ImageView;
 
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Category;
-import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.utils.ImageUtils;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
-
-import java.util.ArrayList;
 
 public class AddCategoryActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddCategoryActivity.class.getName();
 
     public static final String CATEGORY_KEY = TAG + ".category";
     private static final int LOAD_IMAGE = 123;
+    public static final String CATEGORY_IMAGE_PATH = TAG + ".category_image_path";
 
     private EditText mNameField;
     private ImageView mImageField;
     private Button mDoneButton;
 
-    private String mSelectedImagePath;
+    private String mImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +47,8 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
             }
         });
 
-        if (mSelectedImagePath != null) {
-            new LoadImageBitmapAsyncTask(mImageField).execute(mSelectedImagePath);
+        if (mImagePath != null) {
+            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
         }
     }
 
@@ -59,9 +57,9 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == LOAD_IMAGE && resultCode == RESULT_OK && data != null) {
             String picturePath = ImageUtils.getImagePath(this, data);
-            mSelectedImagePath = picturePath;
-            Log.i(TAG, "New image path is " + mSelectedImagePath);
-            mImageField.setImageBitmap(ImageUtils.createBigImageBitmap(mSelectedImagePath));
+            mImagePath = picturePath;
+            Log.i(TAG, "New image path is " + mImagePath);
+            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
         }
     }
 
@@ -85,6 +83,9 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
 
         Intent intent = new Intent();
         intent.putExtra(CATEGORY_KEY, category);
+        if (!TextUtils.isEmpty(mImagePath)) {
+            intent.putExtra(CATEGORY_IMAGE_PATH, mImagePath);
+        }
         setResult(RESULT_OK, intent);
         finish();
         Log.i(TAG, "Created new category " + category);

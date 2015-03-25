@@ -120,9 +120,6 @@ public class CatalogDataSource {
         if (cursor == null) {
             return null;
         }
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Cursor is " + DatabaseUtils.dumpCursorToString(cursor));
-        }
         Item item = new Item();
         item.setCategory(category);
         item.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED)) == 1 ? true : false);
@@ -166,8 +163,8 @@ public class CatalogDataSource {
                 + " = " + id, null);
     }
 
-    public Cursor getItemsCursor(CharSequence constraint) {
-        String query = "select * from " + MySQLiteOpenHelper.TABLE_ITEMS + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME + " LIKE '%" + constraint + "%'";
+    public Cursor getItemsCursor(Category category, CharSequence constraint) {
+        String query = "select * from " + MySQLiteOpenHelper.TABLE_ITEMS + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME + " LIKE '%" + constraint + "%' AND " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + category.getId() + "'";
         return mDatabase.rawQuery(query, null);
     }
 }

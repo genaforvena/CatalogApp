@@ -25,7 +25,6 @@ public class Category implements Parcelable {
     protected Category(Parcel in) {
         mId = in.readLong();
         mName = in.readString();
-        mImage = (Bitmap) in.readValue(Bitmap.class.getClassLoader());
         mIsUserDefined = in.readByte() != 0x00;
     }
 
@@ -38,7 +37,6 @@ public class Category implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(mId);
         dest.writeString(mName);
-        dest.writeValue(mImage);
         dest.writeByte((byte) (mIsUserDefined ? 0x01 : 0x00));
     }
 

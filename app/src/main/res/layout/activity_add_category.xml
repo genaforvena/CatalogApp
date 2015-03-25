@@ -21,7 +21,7 @@
         <TextView
             style="@style/activity_header"
             android:id="@+id/activity_add_category_header"
-            android:text="@string/add_item_header"
+            android:text="@string/add_category_header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 

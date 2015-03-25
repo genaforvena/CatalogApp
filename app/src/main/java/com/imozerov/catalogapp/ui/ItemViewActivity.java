@@ -1,8 +1,10 @@
 package com.imozerov.catalogapp.ui;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -12,15 +14,14 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.R;
-import com.imozerov.catalogapp.models.Category;
+import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.models.Item;
-import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
+import com.imozerov.catalogapp.utils.ImageUtils;
 
 public class ItemViewActivity extends ActionBarActivity {
     private static final String TAG = ItemViewActivity.class.getName();
 
     public static final String ITEM_KEY = TAG + ".item";
-    public static final String CATEGORY_KEY = TAG + ".category";
     public static final String DELETED_ITEM_KEY = TAG + ".deletedItem";
 
     private TextView mItemName;
@@ -32,6 +33,7 @@ public class ItemViewActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item);
+
         mItem = getIntent().getParcelableExtra(ITEM_KEY);
 
         mItemName = (TextView) findViewById(R.id.activity_item_name);
@@ -40,9 +42,26 @@ public class ItemViewActivity extends ActionBarActivity {
 
         mItemName.setText(mItem.getName());
         mItemDescription.setText(mItem.getDescription());
-        if (mItem.getImage() != null) {
-            mItemImage.setImageBitmap(mItem.getImage());
-        }
+        new AsyncTask<Void, Void, Item>() {
+            @Override
+            protected Item doInBackground(Void... params) {
+                CatalogDataSource catalogDataSource = new CatalogDataSource(ItemViewActivity.this);
+                catalogDataSource.open();
+                Item item = catalogDataSource.getItem(mItem.getId());
+                catalogDataSource.close();
+                return item;
+            }
+
+            @Override
+            protected void onPostExecute(Item item) {
+                if (item == null || mItem.getImage() == null) {
+                    Log.w(TAG, "Item has no image.");
+                    return;
+                }
+
+                mItemImage.setImageBitmap(item.getImage());
+            }
+        }.execute();
 
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();

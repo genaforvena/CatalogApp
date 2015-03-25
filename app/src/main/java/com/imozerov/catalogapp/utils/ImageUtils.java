@@ -7,13 +7,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * Created by imozerov on 23.03.2015.
  */
 public class ImageUtils {
+    private static final String TAG = ImageUtils.class.getName();
+
     public static String getImagePath(Context context, Intent data) {
         Uri selectedImage = data.getData();
         String[] filePathColumn = { MediaStore.Images.Media.DATA };
@@ -87,5 +92,26 @@ public class ImageUtils {
             return null;
         }
         return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
+
+    public static void createImageFromBitmap(Context context, Bitmap bitmap, String filename) {
+        FileOutputStream fo = null;
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            fo = context.openFileOutput(filename, Context.MODE_PRIVATE);
+            fo.write(bytes.toByteArray());
+        } catch (IOException e) {
+            Log.e(TAG, "Unable to write image to file!", e);
+        } finally {
+            if (fo != null) {
+                try {
+                    fo.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Unable to close output stream", e);
+                }
+            }
+        }
+
     }
 }
