@@ -15,13 +15,6 @@ public class Category implements Parcelable {
 
     public Category() {}
 
-    public Category(long id, String name, Bitmap image, boolean isUserDefined) {
-        setId(id);
-        setName(name);
-        setImage(image);
-        setUserDefined(isUserDefined);
-    }
-
     protected Category(Parcel in) {
         mId = in.readLong();
         mName = in.readString();

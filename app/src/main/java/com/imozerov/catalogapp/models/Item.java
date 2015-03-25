@@ -17,14 +17,6 @@ public class Item implements Parcelable {
 
     public Item() {}
 
-    public Item(long id, String name, boolean isUserDefined, String description, Bitmap image, Category category) {
-        setId(id);
-        setName(name);
-        setUserDefined(isUserDefined);
-        setDescription(description);
-        setImage(image);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

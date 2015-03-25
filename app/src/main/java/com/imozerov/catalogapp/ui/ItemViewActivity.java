@@ -54,7 +54,12 @@ public class ItemViewActivity extends ActionBarActivity {
 
             @Override
             protected void onPostExecute(Item item) {
-                if (item == null || mItem.getImage() == null) {
+                if (item == null) {
+                    Log.w(TAG, "Item is null.");
+                    return;
+                }
+
+                if (item.getImage() == null) {
                     Log.w(TAG, "Item has no image.");
                     return;
                 }
