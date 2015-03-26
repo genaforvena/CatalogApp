@@ -159,11 +159,11 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
             startActivityForResult(intent, REQUEST_CODE_ADD_CATEGORY);
             return true;
         } else if (id == R.id.action_share_app) {
-            Log.i(TAG, "Sharing app");
+            Log.i(TAG, "Sharing app is not available as app is not available on Play Store.");
             Toast.makeText(this, "Sharing app", Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_about) {
-            Log.i(TAG, "Showing about");
+            startActivity(new Intent(this, AboutActivity.class));
             Toast.makeText(this, "Showing about", Toast.LENGTH_SHORT).show();
             return true;
         }
