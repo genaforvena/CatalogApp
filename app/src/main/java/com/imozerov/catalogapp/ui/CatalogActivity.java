@@ -5,9 +5,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.util.LongSparseArray;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,12 +26,13 @@ import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
+import com.imozerov.catalogapp.database.helpers.SimpleCursorLoader;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.adapters.CatalogAdapter;
 import com.imozerov.catalogapp.utils.Constants;
 
 
-public class CatalogActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
+public class CatalogActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor>, SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
     private final static String TAG = CatalogActivity.class.getName();
 
     private ExpandableListView mCatalogView;
@@ -35,6 +41,7 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
     private CatalogDataSource mCatalogDataSource;
     private DatabaseUpdatedBroadcastReceiver mDatabaseUpdatedBroadcastReceiver;
     private IntentFilter mStatusIntentFilter;
+    private String mSearchQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +55,13 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
                 mDatabaseUpdatedBroadcastReceiver,
                 mStatusIntentFilter);
 
+        Loader loader = getSupportLoaderManager().getLoader(-1);
+        if (loader != null && !loader.isReset()) {
+            getSupportLoaderManager().restartLoader(-1, null, this);
+        } else {
+            getSupportLoaderManager().initLoader(-1, null, this).forceLoad();
+        }
+
         setContentView(R.layout.activity_catalog_list);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         mSearchView = (SearchView) findViewById(R.id.activity_catalog_list_search);
@@ -60,7 +74,7 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
 
         mCatalogView.setOnChildClickListener(this);
 
-        mCatalogAdapter = new CatalogAdapter(mCatalogDataSource.getCategoriesCursor(), this, mCatalogDataSource);
+        mCatalogAdapter = new CatalogAdapter(mCatalogDataSource.getCategoriesCursor(), this);
         mCatalogView.setAdapter(mCatalogAdapter);
 
         AdView mAdView = (AdView) findViewById(R.id.adView);
@@ -72,7 +86,6 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
     protected void onDestroy() {
         mCatalogAdapter.changeCursor(null);
         mCatalogAdapter = null;
-        mCatalogDataSource.close();
         super.onDestroy();
     }
 
@@ -98,44 +111,14 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
             return true;
         } else if (id == R.id.action_share_app) {
             Log.i(TAG, "Sharing app is not available as app is not available on Play Store.");
-            Toast.makeText(this, "Sharing app", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sharing app is not available as app is not available on Play Store.", Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_about) {
             startActivity(new Intent(this, AboutActivity.class));
-            Toast.makeText(this, "Showing about", Toast.LENGTH_SHORT).show();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void expandAll() {
-        int count = mCatalogAdapter.getGroupCount();
-        for (int i = 0; i < count; i++) {
-            mCatalogView.expandGroup(i);
-        }
-    }
-
-    @Override
-    public boolean onQueryTextChange(String query) {
-        mCatalogAdapter.filterList(query);
-        expandAll();
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        mCatalogAdapter.filterList(query);
-
-        expandAll();
-        return true;
-    }
-
-    @Override
-    public boolean onClose() {
-        mCatalogAdapter.filterList("");
-        expandAll();
-        return true;
     }
 
     @Override
@@ -151,16 +134,125 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         return true;
     }
 
+    @Override
+    public boolean onQueryTextChange(String query) {
+        filterList(query);
+        expandAll();
+        return true;
+    }
+
+    private void filterList(String query) {
+        mSearchQuery = query;
+        mCatalogAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        filterList(query);
+        expandAll();
+        return true;
+    }
+
+    @Override
+    public boolean onClose() {
+        filterList("");
+        expandAll();
+        return true;
+    }
+
+    private void expandAll() {
+        int count = mCatalogAdapter.getGroupCount();
+        for (int i = 0; i < count; i++) {
+            mCatalogView.expandGroup(i);
+        }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(final int id, Bundle args) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onCreateLoader for loader_id " + id);
+        }
+        if (id != -1) {
+            return new SimpleCursorLoader(this) {
+                @Override
+                public Cursor loadInBackground() {
+                    if (TextUtils.isEmpty(mSearchQuery)) {
+                        return mCatalogDataSource.getItemsCursorWithoutImage(id);
+                    } else {
+                        return mCatalogDataSource.getItemsCursorWithoutImage(id, mSearchQuery);
+                    }
+                }
+            };
+        } else {
+            return new SimpleCursorLoader(this) {
+                @Override
+                public Cursor loadInBackground() {
+                    return mCatalogDataSource.getCategoriesCursor();
+                }
+            };
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (mCatalogAdapter == null) {
+            return;
+        }
+        int id = loader.getId();
+        Log.d(TAG, "onLoadFinished() for loader_id " + id);
+        LongSparseArray<Integer> groupMap = mCatalogAdapter.getGroupMap();
+        if (id != -1) {
+            if (!data.isClosed()) {
+                try {
+                    int groupPos = groupMap.get(id);
+                    Log.d(TAG, "data.getCount() " + data.getCount());
+                    mCatalogAdapter.setChildrenCursor(groupPos, data);
+                } catch (Exception e) {
+                    Log.w(TAG, e);
+                }
+            }
+        } else {
+            mCatalogAdapter.setGroupCursor(data);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        int id = loader.getId();
+        Log.d(TAG, "onLoaderReset() for loader_id " + id);
+        if (mCatalogAdapter == null) {
+            return;
+        }
+        if (id != -1) {
+            try {
+                mCatalogAdapter.setChildrenCursor(id, null);
+            } catch (Exception e) {
+                Log.w(TAG, e);
+            }
+        } else {
+            if (!mCatalogDataSource.isOpen()) {
+                mCatalogDataSource.open();
+            }
+            mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
+        }
+    }
+
     private class DatabaseUpdatedBroadcastReceiver extends BroadcastReceiver {
         private DatabaseUpdatedBroadcastReceiver() {
         }
 
         public void onReceive(Context context, Intent intent) {
             Log.i(TAG, "onReceive(" + intent + ")");
-            if (mCatalogDataSource != null && mCatalogDataSource.isOpen()) {
-                mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
-                mCatalogView.setAdapter(mCatalogAdapter);
+            if (mCatalogAdapter == null) {
+                return;
             }
+
+            if (mCatalogDataSource == null || !mCatalogDataSource.isOpen()) {
+                return;
+            }
+
+            mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
+            mCatalogAdapter.notifyDataSetChanged();
         }
     }
 }

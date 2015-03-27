@@ -92,6 +92,18 @@ public class CatalogDataSource {
         return mDatabase.rawQuery(query, null);
     }
 
+    public Cursor getItemsCursorWithoutImage(int categoryId) {
+        String query = "select "
+                + MySQLiteOpenHelper.ITEMS_COLUMN_ID
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED
+                + " from " + MySQLiteOpenHelper.TABLE_ITEMS
+                + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + categoryId + "'";
+        return mDatabase.rawQuery(query, null);
+    }
+
     public Cursor getItemsCursorWithoutImage(Category category, CharSequence constraint) {
         String query = "select "
                 + MySQLiteOpenHelper.ITEMS_COLUMN_ID
@@ -103,6 +115,20 @@ public class CatalogDataSource {
                 + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
                 + " LIKE '%" + constraint
                 + "%' AND " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + category.getId() + "'";
+        return mDatabase.rawQuery(query, null);
+    }
+
+    public Cursor getItemsCursorWithoutImage(int categoryId, CharSequence constraint) {
+        String query = "select "
+                + MySQLiteOpenHelper.ITEMS_COLUMN_ID
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
+                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED
+                + " from " + MySQLiteOpenHelper.TABLE_ITEMS
+                + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
+                + " LIKE '%" + constraint
+                + "%' AND " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + categoryId + "'";
         return mDatabase.rawQuery(query, null);
     }
 

@@ -39,34 +39,22 @@ public class ImageUtils {
     }
 
     private static Bitmap decodeSampledBitmapFromResource(String imagePath, int reqWidth, int reqHeight) {
-
-        // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(imagePath, options);
-
-        // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeFile(imagePath, options);
     }
 
-    private static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
+    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         final int height = options.outHeight;
         final int width = options.outWidth;
         int inSampleSize = 1;
 
         if (height > reqHeight || width > reqWidth) {
-
             final int halfHeight = height / 2;
             final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
             while ((halfHeight / inSampleSize) > reqHeight
                     && (halfWidth / inSampleSize) > reqWidth) {
                 inSampleSize *= 2;
@@ -76,7 +64,6 @@ public class ImageUtils {
         return inSampleSize;
     }
 
-    // convert from bitmap to byte array
     public static byte[] getBytes(Bitmap bitmap) {
         if (bitmap == null) {
             return null;
@@ -86,32 +73,10 @@ public class ImageUtils {
         return stream.toByteArray();
     }
 
-    // convert from byte array to bitmap
     public static Bitmap getImage(byte[] image) {
         if (image == null) {
             return null;
         }
         return BitmapFactory.decodeByteArray(image, 0, image.length);
-    }
-
-    public static void createImageFromBitmap(Context context, Bitmap bitmap, String filename) {
-        FileOutputStream fo = null;
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-            fo = context.openFileOutput(filename, Context.MODE_PRIVATE);
-            fo.write(bytes.toByteArray());
-        } catch (IOException e) {
-            Log.e(TAG, "Unable to write image to file!", e);
-        } finally {
-            if (fo != null) {
-                try {
-                    fo.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "Unable to close output stream", e);
-                }
-            }
-        }
-
     }
 }

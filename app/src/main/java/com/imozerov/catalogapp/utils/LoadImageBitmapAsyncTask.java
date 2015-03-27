@@ -16,7 +16,7 @@ public class LoadImageBitmapAsyncTask extends AsyncTask<String, Void, Bitmap> {
 
     @Override
     protected Bitmap doInBackground(String... params) {
-        return ImageUtils.createSmallImageBitmap(params[0]);
+        return ImageUtils.createBigImageBitmap(params[0]);
     }
 
     @Override

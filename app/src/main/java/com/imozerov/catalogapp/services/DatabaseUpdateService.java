@@ -53,7 +53,7 @@ public class DatabaseUpdateService extends IntentService {
             Category category = intent.getParcelableExtra(AddCategoryActivity.CATEGORY_KEY);
             String imagePath = intent.getStringExtra(AddCategoryActivity.CATEGORY_IMAGE_PATH);
             if (!TextUtils.isEmpty(imagePath)) {
-                category.setImage(ImageUtils.createBigImageBitmap(imagePath));
+                category.setImage(ImageUtils.createSmallImageBitmap(imagePath));
             }
             mCatalogDataSource.addCategory(category);
             Log.i(TAG, "Category " + category + " saved into db.");

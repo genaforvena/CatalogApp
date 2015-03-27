@@ -21,7 +21,8 @@
         android:id="@+id/activity_catalog_list_listview"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_below="@+id/activity_catalog_list_search"/>
+        android:layout_below="@+id/activity_catalog_list_search"
+        android:layout_above="@+id/adView"/>
 
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"

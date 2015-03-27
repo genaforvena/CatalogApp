@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.support.v4.content.Loader;
+import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,43 +17,43 @@ import android.widget.TextView;
 
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
+import com.imozerov.catalogapp.database.MySQLiteOpenHelper;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.ui.CatalogActivity;
 
 /**
  * Created by imozerov on 24.03.2015.
  */
 public class CatalogAdapter extends CursorTreeAdapter {
-    private final LayoutInflater mInflater;
-    private final CatalogDataSource mCatalogDataSource;
-    private final Activity mActivity;
-    private CharSequence mSearchQuery;
+    private final static String TAG = CatalogAdapter.class.getName();
 
-    public CatalogAdapter(Cursor cursor, Activity activity, CatalogDataSource catalogDataSource) {
+    private final LayoutInflater mInflater;
+    private final CatalogActivity mActivity;
+    private final LongSparseArray<Integer> mGroupMap;
+
+    public CatalogAdapter(Cursor cursor, CatalogActivity activity) {
         super(cursor, activity);
         mInflater = LayoutInflater.from(activity);
         mActivity = activity;
-        mCatalogDataSource = catalogDataSource;
+        mGroupMap = new LongSparseArray<>();
     }
 
     @Override
     protected Cursor getChildrenCursor(final Cursor groupCursor) {
-        if (groupCursor == null) {
-            return null;
-        }
+        int groupPos = groupCursor.getPosition();
+        int groupId = groupCursor.getInt(groupCursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_ID));
+        Log.d(TAG, "getChildrenCursor() for groupId " + groupId);
 
-        Category category = CatalogDataSource.cursorToCategory(groupCursor);
-        Cursor cursor;
-        if (TextUtils.isEmpty(mSearchQuery)) {
-           cursor = mCatalogDataSource.getItemsCursorWithoutImage(category);
+        mGroupMap.put(groupId, groupPos);
+        Loader<Cursor> loader = mActivity.getSupportLoaderManager().getLoader(groupId);
+        if (loader != null && !loader.isReset()) {
+            mActivity.getSupportLoaderManager().restartLoader(groupId, null, mActivity);
         } else {
-           cursor = mCatalogDataSource.getItemsCursorWithoutImage(category, mSearchQuery);
+            mActivity.getSupportLoaderManager().initLoader(groupId, null, mActivity);
         }
 
-        if (cursor != null) {
-            mActivity.startManagingCursor(cursor);
-        }
-        return cursor;
+        return null;
     }
 
     @Override
@@ -100,8 +103,7 @@ public class CatalogAdapter extends CursorTreeAdapter {
         }
     }
 
-    public void filterList(String searchQuery) {
-        mSearchQuery = searchQuery;
-        notifyDataSetChanged();
+    public LongSparseArray<Integer> getGroupMap() {
+        return mGroupMap;
     }
 }
