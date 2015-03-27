@@ -11,7 +11,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.imozerov.catalogapp.R;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.models.Category;
+import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.ImageUtils;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
@@ -81,12 +83,15 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
         category.setName(mNameField.getText().toString());
         category.setUserDefined(true);
 
-        Intent intent = new Intent();
+        Intent intent = new Intent(this, DatabaseUpdateService.class);
+        intent.setAction(Constants.ACTION_ADD_CATEGORY);
         intent.putExtra(CATEGORY_KEY, category);
         if (!TextUtils.isEmpty(mImagePath)) {
             intent.putExtra(CATEGORY_IMAGE_PATH, mImagePath);
         }
-        setResult(RESULT_OK, intent);
+        startService(intent);
+
+        startActivity(new Intent(this, CatalogActivity.class));
         finish();
         Log.i(TAG, "Created new category " + category);
     }

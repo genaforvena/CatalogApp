@@ -26,9 +26,11 @@
 
             <ImageView
                 android:id="@+id/activity_item_image"
-                android:layout_width="match_parent"
+                android:layout_width="200dp"
                 android:layout_height="200dp"
+                android:layout_centerHorizontal="true"
                 android:layout_below="@+id/activity_item_name"
+                android:scaleType="fitCenter"
                 android:src="@drawable/abc_switch_track_mtrl_alpha"
                 />
 
@@ -39,6 +41,8 @@
                 android:layout_below="@+id/activity_item_image"
                 android:text="Some description"
                 />
+
+
         </RelativeLayout>
     </ScrollView>
 

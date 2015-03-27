@@ -37,7 +37,6 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
             + " blob, " + ITEMS_COLUMN_NAME + " text, "
             + ITEMS_COLUMN_DESCRIPTION + " text, "
             + ITEMS_COLUMN_CATEGORY_ID + " integer, "
-//            + "FOREIGN KEY(" + ITEMS_COLUMN_CATEGORY_ID + ") REFERENCES " + TABLE_CATEGORIES + "(" + CATEGORIES_COLUMN_ID + "), "
             + ITEMS_COLUMN_IS_USER_DEFINED + " integer" +
             ");";
     private static final String TAG = MySQLiteOpenHelper.class.getName();

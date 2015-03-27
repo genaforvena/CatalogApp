@@ -3,15 +3,12 @@ package com.imozerov.catalogapp.ui.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
+import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorTreeAdapter;
-import android.widget.Filter;
-import android.widget.FilterQueryProvider;
-import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -26,27 +23,34 @@ import com.imozerov.catalogapp.models.Item;
 public class CatalogAdapter extends CursorTreeAdapter {
     private final LayoutInflater mInflater;
     private final CatalogDataSource mCatalogDataSource;
+    private final Activity mActivity;
     private CharSequence mSearchQuery;
 
-    public CatalogAdapter(Cursor cursor, Context context, CatalogDataSource catalogDataSource) {
-        super(cursor, context);
-        mInflater = LayoutInflater.from(context);
+    public CatalogAdapter(Cursor cursor, Activity activity, CatalogDataSource catalogDataSource) {
+        super(cursor, activity);
+        mInflater = LayoutInflater.from(activity);
+        mActivity = activity;
         mCatalogDataSource = catalogDataSource;
     }
 
     @Override
-    protected Cursor getChildrenCursor(Cursor groupCursor) {
+    protected Cursor getChildrenCursor(final Cursor groupCursor) {
         if (groupCursor == null) {
             return null;
         }
 
+        Category category = CatalogDataSource.cursorToCategory(groupCursor);
+        Cursor cursor;
         if (TextUtils.isEmpty(mSearchQuery)) {
-            Category category = CatalogDataSource.cursorToCategory(groupCursor);
-            return mCatalogDataSource.getItemsCursor(category);
+           cursor = mCatalogDataSource.getItemsCursorWithoutImage(category);
         } else {
-            Category category = CatalogDataSource.cursorToCategory(groupCursor);
-            return mCatalogDataSource.getItemsCursor(category, mSearchQuery);
+           cursor = mCatalogDataSource.getItemsCursorWithoutImage(category, mSearchQuery);
         }
+
+        if (cursor != null) {
+            mActivity.startManagingCursor(cursor);
+        }
+        return cursor;
     }
 
     @Override
@@ -90,11 +94,6 @@ public class CatalogAdapter extends CursorTreeAdapter {
         Item item = CatalogDataSource.cursorToItem(cursor, null);
 
         TextView itemNameView = (TextView) view.findViewById(R.id.item_item_name);
-        ImageView itemImageView = (ImageView) view.findViewById(R.id.item_item_image);
-
-        if (itemImageView != null && item.getImage() != null) {
-            itemImageView.setImageBitmap(item.getImage());
-        }
 
         if (itemNameView != null) {
             itemNameView.setText(item.getName());

@@ -12,11 +12,12 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
-import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.ImageUtils;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
@@ -107,12 +108,15 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         newItem.setDescription(mDescriptionField.getText().toString());
         newItem.setUserDefined(true);
 
-        Intent intent = new Intent();
+        Intent intent = new Intent(this, DatabaseUpdateService.class);
+        intent.setAction(Constants.ACTION_ADD_ITEM);
         intent.putExtra(ITEM_KEY, newItem);
         if (!TextUtils.isEmpty(mImagePath)) {
             intent.putExtra(ITEM_IMAGE_PATH, mImagePath);
         }
-        setResult(RESULT_OK, intent);
+        startService(intent);
+
+        startActivity(new Intent(this, CatalogActivity.class));
         finish();
         Log.i(TAG, "Created new item " + newItem);
     }

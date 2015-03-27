@@ -15,8 +15,9 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.models.Item;
-import com.imozerov.catalogapp.utils.ImageUtils;
+import com.imozerov.catalogapp.utils.Constants;
 
 public class ItemViewActivity extends ActionBarActivity {
     private static final String TAG = ItemViewActivity.class.getName();
@@ -32,7 +33,7 @@ public class ItemViewActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_item);
+        setContentView(R.layout.activity_item_view);
 
         mItem = getIntent().getParcelableExtra(ITEM_KEY);
 
@@ -80,6 +81,7 @@ public class ItemViewActivity extends ActionBarActivity {
         } else {
             getMenuInflater().inflate(R.menu.menu_item_default_item, menu);
         }
+
         return true;
     }
 
@@ -88,10 +90,13 @@ public class ItemViewActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_delete) {
-            Intent intent = new Intent(this, CatalogActivity.class);
+            Intent intent = new Intent(this, DatabaseUpdateService.class);
+            intent.setAction(Constants.ACTION_DELETE_ITEM);
             intent.putExtra(DELETED_ITEM_KEY, mItem);
+            startService(intent);
+
+            startActivity(new Intent(this, CatalogActivity.class));
             finish();
-            startActivity(intent);
             return true;
         } else if (id == R.id.action_report) {
             Toast.makeText(this, "Reporting item!", Toast.LENGTH_SHORT).show();
@@ -100,4 +105,6 @@ public class ItemViewActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }

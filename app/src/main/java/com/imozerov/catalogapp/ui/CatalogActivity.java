@@ -1,12 +1,13 @@
 package com.imozerov.catalogapp.ui;
 
 import android.app.SearchManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,27 +21,33 @@ import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
-import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.adapters.CatalogAdapter;
-import com.imozerov.catalogapp.utils.ImageUtils;
+import com.imozerov.catalogapp.utils.Constants;
 
 
 public class CatalogActivity extends ActionBarActivity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
-    public static final int REQUEST_CODE_ADD_ITEM = 112;
     private final static String TAG = CatalogActivity.class.getName();
-    private static final int REQUEST_CODE_ADD_CATEGORY = 114;
 
     private ExpandableListView mCatalogView;
     private CatalogAdapter mCatalogAdapter;
     private SearchView mSearchView;
     private CatalogDataSource mCatalogDataSource;
+    private DatabaseUpdatedBroadcastReceiver mDatabaseUpdatedBroadcastReceiver;
+    private IntentFilter mStatusIntentFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mCatalogDataSource = new CatalogDataSource(this);
         mCatalogDataSource.open();
+
+        mStatusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION_DATABASE_UPDATED);
+        mDatabaseUpdatedBroadcastReceiver = new DatabaseUpdatedBroadcastReceiver();
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mDatabaseUpdatedBroadcastReceiver,
+                mStatusIntentFilter);
+
         setContentView(R.layout.activity_catalog_list);
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         mSearchView = (SearchView) findViewById(R.id.activity_catalog_list_search);
@@ -59,83 +66,14 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
-
-        final Intent intent = getIntent();
-        if (intent != null) {
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    Item deletedItem = intent.getParcelableExtra(ItemViewActivity.DELETED_ITEM_KEY);
-                    if (deletedItem == null) {
-                        return null;
-                    }
-                    mCatalogDataSource.deleteItem(deletedItem);
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    mCatalogAdapter.notifyDataSetChanged();
-                }
-            }.execute();
-        }
     }
 
     @Override
     protected void onDestroy() {
+        mCatalogAdapter.changeCursor(null);
+        mCatalogAdapter = null;
         mCatalogDataSource.close();
         super.onDestroy();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        Log.i(TAG, "Activity result is received. requestCode: " + requestCode + "; resultCode: " + resultCode + "; data: " + data);
-        if (resultCode != RESULT_OK) {
-            return;
-        }
-        if (data == null) {
-            return;
-        }
-
-        if (requestCode == REQUEST_CODE_ADD_CATEGORY) {
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    Category category = data.getParcelableExtra(AddCategoryActivity.CATEGORY_KEY);
-                    String imagePath = data.getStringExtra(AddCategoryActivity.CATEGORY_IMAGE_PATH);
-                    if (!TextUtils.isEmpty(imagePath)) {
-                        category.setImage(ImageUtils.createBigImageBitmap(imagePath));
-                    }
-                    mCatalogDataSource.addCategory(category);
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
-                    mCatalogAdapter.notifyDataSetChanged();
-                }
-            }.execute();
-
-        } else if (requestCode == REQUEST_CODE_ADD_ITEM) {
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    Item newItem = data.getParcelableExtra(AddItemActivity.ITEM_KEY);
-                    String imagePath = data.getStringExtra(AddItemActivity.ITEM_IMAGE_PATH);
-                    if (!TextUtils.isEmpty(imagePath)) {
-                        newItem.setImage(ImageUtils.createBigImageBitmap(imagePath));
-                    }
-                    mCatalogDataSource.addItem(newItem);
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    mCatalogAdapter.notifyDataSetChanged();
-                }
-            }.execute();
-        }
     }
 
     @Override
@@ -151,12 +89,12 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         if (id == R.id.action_add_item) {
             Log.i(TAG, "Adding item");
             Intent intent = new Intent(this, AddItemActivity.class);
-            startActivityForResult(intent, REQUEST_CODE_ADD_ITEM);
+            startActivity(intent);
             return true;
         } else if (id == R.id.action_add_category) {
             Log.i(TAG, "Adding category");
             Intent intent = new Intent(this, AddCategoryActivity.class);
-            startActivityForResult(intent, REQUEST_CODE_ADD_CATEGORY);
+            startActivity(intent);
             return true;
         } else if (id == R.id.action_share_app) {
             Log.i(TAG, "Sharing app is not available as app is not available on Play Store.");
@@ -211,5 +149,18 @@ public class CatalogActivity extends ActionBarActivity implements SearchView.OnQ
         intent.putExtra(ItemViewActivity.ITEM_KEY, item);
         startActivity(intent);
         return true;
+    }
+
+    private class DatabaseUpdatedBroadcastReceiver extends BroadcastReceiver {
+        private DatabaseUpdatedBroadcastReceiver() {
+        }
+
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "onReceive(" + intent + ")");
+            if (mCatalogDataSource != null && mCatalogDataSource.isOpen()) {
+                mCatalogAdapter.setGroupCursor(mCatalogDataSource.getCategoriesCursor());
+                mCatalogView.setAdapter(mCatalogAdapter);
+            }
+        }
     }
 }
