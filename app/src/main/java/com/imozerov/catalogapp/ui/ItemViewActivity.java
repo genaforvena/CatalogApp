@@ -24,6 +24,7 @@ public class ItemViewActivity extends ActionBarActivity {
 
     public static final String ITEM_KEY = TAG + ".item";
     public static final String DELETED_ITEM_KEY = TAG + ".deletedItem";
+    public static final String DELETED_CATEGORY_KEY = TAG + ".deletedCategory";
 
     private TextView mItemName;
     private ImageView mItemImage;

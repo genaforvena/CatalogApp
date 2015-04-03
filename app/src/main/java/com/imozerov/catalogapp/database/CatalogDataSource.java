@@ -158,10 +158,14 @@ public class CatalogDataSource {
             return;
         }
         ContentValues values = new ContentValues();
+        if (category.getId() != 0) {
+            values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_ID, category.getId());
+        }
         values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_IMAGE, ImageUtils.getBytes(category.getImage()));
         values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_NAME, category.getName());
         values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_IS_USER_DEFINED, category.isUserDefined() ? 1 : 0);
-        mDatabase.insert(MySQLiteOpenHelper.TABLE_CATEGORIES, null, values);
+
+        mDatabase.insertWithOnConflict(MySQLiteOpenHelper.TABLE_CATEGORIES, null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
     public void deleteItem(Item item) {
@@ -172,6 +176,17 @@ public class CatalogDataSource {
         long id = item.getId();
         Log.i(TAG, "Comment deleted with id: " + id);
         mDatabase.delete(MySQLiteOpenHelper.TABLE_ITEMS, MySQLiteOpenHelper.ITEMS_COLUMN_ID
+                + " = " + id, null);
+    }
+
+    public void deleteCategory(Category category) {
+        if (category == null) {
+            Log.e(TAG, "Null category passed");
+            return;
+        }
+        long id = category.getId();
+        Log.i(TAG, "Comment deleted with id: " + id);
+        mDatabase.delete(MySQLiteOpenHelper.TABLE_CATEGORIES, MySQLiteOpenHelper.CATEGORIES_COLUMN_ID
                 + " = " + id, null);
     }
 

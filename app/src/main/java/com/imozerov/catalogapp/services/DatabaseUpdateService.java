@@ -61,6 +61,10 @@ public class DatabaseUpdateService extends IntentService {
             Item deletedItem = intent.getParcelableExtra(ItemViewActivity.DELETED_ITEM_KEY);
             mCatalogDataSource.deleteItem(deletedItem);
             Log.i(TAG, "Item " + deletedItem + " deleted from db.");
+        } else if (action.equals(Constants.ACTION_DELETE_CATEGORY)) {
+            Category deletedCategory = intent.getParcelableExtra(ItemViewActivity.DELETED_CATEGORY_KEY);
+            mCatalogDataSource.deleteCategory(deletedCategory);
+            Log.i(TAG, "Item " + deletedCategory + " deleted from db.");
         }
         mCatalogDataSource.close();
 

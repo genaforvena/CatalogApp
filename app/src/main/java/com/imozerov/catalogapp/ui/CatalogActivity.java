@@ -1,8 +1,10 @@
 package com.imozerov.catalogapp.ui;
 
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
@@ -17,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -27,12 +30,14 @@ import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.database.helpers.SimpleCursorLoader;
+import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.ui.adapters.CatalogAdapter;
 import com.imozerov.catalogapp.utils.Constants;
 
 
-public class CatalogActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor>, SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener {
+public class CatalogActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor>, SearchView.OnQueryTextListener, SearchView.OnCloseListener, ExpandableListView.OnChildClickListener, AdapterView.OnItemLongClickListener {
     private final static String TAG = CatalogActivity.class.getName();
 
     private ExpandableListView mCatalogView;
@@ -73,6 +78,7 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
         mCatalogView = (ExpandableListView) findViewById(R.id.activity_catalog_list_listview);
 
         mCatalogView.setOnChildClickListener(this);
+        mCatalogView.setOnItemLongClickListener(this);
 
         mCatalogAdapter = new CatalogAdapter(mCatalogDataSource.getCategoriesCursor(), this);
         mCatalogView.setAdapter(mCatalogAdapter);
@@ -80,6 +86,7 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+
     }
 
     @Override
@@ -119,6 +126,100 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        ExpandableListView listView = (ExpandableListView) parent;
+        long pos = listView.getExpandableListPosition(position);
+
+        int itemType = ExpandableListView.getPackedPositionType(pos);
+        int groupPos = ExpandableListView.getPackedPositionGroup(pos);
+        int childPos = ExpandableListView.getPackedPositionChild(pos);
+
+        boolean isItemClicked = itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD;
+        boolean isCategoryClicked = itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP;
+        if (isItemClicked) {
+            Cursor cursor = mCatalogAdapter.getChild(groupPos, childPos);
+            final Item selectedItem = CatalogDataSource.cursorToItem(cursor, null);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setItems(R.array.item_options_array, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent;
+                    switch (which) {
+                        case 0:
+                            break;
+                        case 1:
+                            if (!selectedItem.isUserDefined()) {
+                                Toast.makeText(CatalogActivity.this, "Cannot delete predefined item!", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+                            intent = new Intent(CatalogActivity.this, DatabaseUpdateService.class);
+                            intent.setAction(Constants.ACTION_DELETE_ITEM);
+                            intent.putExtra(ItemViewActivity.DELETED_ITEM_KEY, selectedItem);
+                            startService(intent);
+                            break;
+                        default:
+                            Log.e(TAG, "Weird item was picked! Which is " + which);
+                            if (BuildConfig.DEBUG) {
+                                throw new RuntimeException("Weird item was picked! Which is " + which);
+                            }
+                            break;
+                    }
+                }
+            });
+            builder.show();
+
+            return true;
+        } else if (isCategoryClicked) {
+            Cursor cursor = mCatalogAdapter.getGroup(groupPos);
+            final Category selectedCategory = CatalogDataSource.cursorToCategory(cursor);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setItems(R.array.category_options_array, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent intent;
+                    switch (which) {
+                        case 0:
+                            if (!selectedCategory.isUserDefined()) {
+                                Toast.makeText(CatalogActivity.this, "Cannot edit predefined category!", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+
+                            intent = new Intent(CatalogActivity.this, AddCategoryActivity.class);
+                            intent.putExtra(AddCategoryActivity.CATEGORY_KEY, selectedCategory);
+                            startActivity(intent);
+                            break;
+                        case 1:
+                            if (!selectedCategory.isUserDefined()) {
+                                Toast.makeText(CatalogActivity.this, "Cannot delete predefined category!", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+                            intent = new Intent(CatalogActivity.this, DatabaseUpdateService.class);
+                            intent.setAction(Constants.ACTION_DELETE_CATEGORY);
+                            intent.putExtra(ItemViewActivity.DELETED_CATEGORY_KEY, selectedCategory);
+                            startService(intent);
+                            break;
+                        case 2:
+                            break;
+                        case 3:
+                            intent = new Intent(CatalogActivity.this, AddCategoryActivity.class);
+                            startActivity(intent);
+                            break;
+                        default:
+                            Log.e(TAG, "Weird item was picked! Which is " + which);
+                            if (BuildConfig.DEBUG) {
+                                throw new RuntimeException("Weird item was picked! Which is " + which);
+                            }
+                            break;
+                    }
+                }
+            });
+            builder.show();
+            return true;
+        }
+        return false;
     }
 
     @Override

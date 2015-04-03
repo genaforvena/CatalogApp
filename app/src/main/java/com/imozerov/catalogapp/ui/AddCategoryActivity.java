@@ -29,6 +29,7 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
     private Button mDoneButton;
 
     private String mImagePath;
+    private Category mCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,16 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
                 startActivityForResult(i, LOAD_IMAGE);
             }
         });
+
+        Category editCategory = getIntent().getParcelableExtra(CATEGORY_KEY);
+
+        if (editCategory != null) {
+            mCategory = editCategory;
+            mNameField.setText(editCategory.getName());
+            if (mCategory.getImage() != null) {
+                mImageField.setImageBitmap(editCategory.getImage());
+            }
+        }
 
         if (mImagePath != null) {
             new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
@@ -79,13 +90,16 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
         if (!isUserInputValid()) {
             return;
         }
-        Category category = new Category();
-        category.setName(mNameField.getText().toString());
-        category.setUserDefined(true);
+        if (mCategory == null) {
+            mCategory = new Category();
+        }
+
+        mCategory.setName(mNameField.getText().toString());
+        mCategory.setUserDefined(true);
 
         Intent intent = new Intent(this, DatabaseUpdateService.class);
         intent.setAction(Constants.ACTION_ADD_CATEGORY);
-        intent.putExtra(CATEGORY_KEY, category);
+        intent.putExtra(CATEGORY_KEY, mCategory);
         if (!TextUtils.isEmpty(mImagePath)) {
             intent.putExtra(CATEGORY_IMAGE_PATH, mImagePath);
         }
@@ -93,6 +107,6 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
 
         startActivity(new Intent(this, CatalogActivity.class));
         finish();
-        Log.i(TAG, "Created new category " + category);
+        Log.i(TAG, "Created new category " + mCategory);
     }
 }

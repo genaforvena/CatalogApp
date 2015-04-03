@@ -11,5 +11,6 @@ public final class Constants {
     public static final String ACTION_ADD_ITEM = "com.imozerov.action.add_item";
     public static final String ACTION_ADD_CATEGORY = "com.imozerov.action.add_category";
     public static final String ACTION_DELETE_ITEM = "com.imozerov.action.delete_item";
+    public static final String ACTION_DELETE_CATEGORY = "com.imozerov.action.delete_category";
     public static final String BROADCAST_ACTION_DATABASE_UPDATED = "com.imozerov.broadcast.action.database_updated";
 }
