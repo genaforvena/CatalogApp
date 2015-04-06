@@ -12,7 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorTreeAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.imozerov.catalogapp.R;
@@ -22,6 +24,8 @@ import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.ui.CatalogActivity;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Created by imozerov on 24.03.2015.
  */
@@ -29,14 +33,18 @@ public class CatalogAdapter extends CursorTreeAdapter {
     private final static String TAG = CatalogAdapter.class.getName();
 
     private final LayoutInflater mInflater;
-    private final CatalogActivity mActivity;
+    private final WeakReference<CatalogActivity> mActivity;
     private final LongSparseArray<Integer> mGroupMap;
+    private final WeakReference<ExpandableListView> mCatalogView;
+    private int mLastExpandedGroupPosition = -1;
+    private boolean mIsSearch;
 
-    public CatalogAdapter(Cursor cursor, CatalogActivity activity) {
+    public CatalogAdapter(Cursor cursor, CatalogActivity activity, ExpandableListView catalogView) {
         super(cursor, activity);
         mInflater = LayoutInflater.from(activity);
-        mActivity = activity;
+        mActivity = new WeakReference<CatalogActivity>(activity);
         mGroupMap = new LongSparseArray<>();
+        mCatalogView = new WeakReference<ExpandableListView>(catalogView) ;
     }
 
     @Override
@@ -46,11 +54,11 @@ public class CatalogAdapter extends CursorTreeAdapter {
         Log.d(TAG, "getChildrenCursor() for groupId " + groupId);
 
         mGroupMap.put(groupId, groupPos);
-        Loader<Cursor> loader = mActivity.getSupportLoaderManager().getLoader(groupId);
+        Loader<Cursor> loader = mActivity.get().getSupportLoaderManager().getLoader(groupId);
         if (loader != null && !loader.isReset()) {
-            mActivity.getSupportLoaderManager().restartLoader(groupId, null, mActivity);
+            mActivity.get().getSupportLoaderManager().restartLoader(groupId, null, mActivity.get());
         } else {
-            mActivity.getSupportLoaderManager().initLoader(groupId, null, mActivity);
+            mActivity.get().getSupportLoaderManager().initLoader(groupId, null, mActivity.get());
         }
 
         return null;
@@ -105,6 +113,28 @@ public class CatalogAdapter extends CursorTreeAdapter {
         if (itemNameView != null) {
             itemNameView.setText(item.getName());
         }
+    }
+
+    @Override
+    public void onGroupExpanded(int groupPosition){
+        if (mIsSearch) {
+            super.onGroupExpanded(groupPosition);
+            return;
+        }
+        if(groupPosition != mLastExpandedGroupPosition){
+            mCatalogView.get().collapseGroup(mLastExpandedGroupPosition);
+        }
+
+        super.onGroupExpanded(groupPosition);
+        mLastExpandedGroupPosition = groupPosition;
+    }
+
+    public boolean isSearch() {
+        return mIsSearch;
+    }
+
+    public void setSearch(boolean isSearch) {
+        mIsSearch = isSearch;
     }
 
     public LongSparseArray<Integer> getGroupMap() {

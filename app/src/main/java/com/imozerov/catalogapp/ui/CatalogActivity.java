@@ -80,7 +80,7 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
         mCatalogView.setOnChildClickListener(this);
         mCatalogView.setOnItemLongClickListener(this);
 
-        mCatalogAdapter = new CatalogAdapter(mCatalogDataSource.getCategoriesCursor(), this);
+        mCatalogAdapter = new CatalogAdapter(mCatalogDataSource.getCategoriesCursor(), this, mCatalogView);
         mCatalogView.setAdapter(mCatalogAdapter);
 
         AdView mAdView = (AdView) findViewById(R.id.adView);
@@ -91,6 +91,9 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
 
     @Override
     protected void onDestroy() {
+        if (mCatalogDataSource != null || mCatalogDataSource.isOpen()) {
+            mCatalogDataSource.close();
+        }
         mCatalogAdapter.changeCursor(null);
         mCatalogAdapter = null;
         super.onDestroy();
@@ -266,8 +269,31 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
 
     @Override
     public boolean onQueryTextChange(String query) {
+        return doFilter(query);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return doFilter(query);
+    }
+
+    @Override
+    public boolean onClose() {
+        return doFilter("");
+    }
+
+    private boolean doFilter(String query) {
+        if (TextUtils.isEmpty(query)) {
+            mCatalogAdapter.setSearch(false);
+        } else {
+            mCatalogAdapter.setSearch(true);
+        }
         filterList(query);
-        expandAll();
+        if (TextUtils.isEmpty(query)) {
+            collapseAll();
+        } else {
+            expandAll();
+        }
         return true;
     }
 
@@ -276,23 +302,17 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
         mCatalogAdapter.notifyDataSetChanged();
     }
 
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        filterList(query);
-        expandAll();
-        return true;
-    }
-
-    @Override
-    public boolean onClose() {
-        filterList("");
-        return true;
-    }
-
     private void expandAll() {
         int count = mCatalogAdapter.getGroupCount();
         for (int i = 0; i < count; i++) {
             mCatalogView.expandGroup(i);
+        }
+    }
+
+    private void collapseAll() {
+        int count = mCatalogAdapter.getGroupCount();
+        for (int i = 0; i < count; i++) {
+            mCatalogView.collapseGroup(i);
         }
     }
 
@@ -328,13 +348,17 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
             return;
         }
         int id = loader.getId();
-        Log.d(TAG, "onLoadFinished() for loader_id " + id);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onLoadFinished() for loader_id " + id);
+        }
         LongSparseArray<Integer> groupMap = mCatalogAdapter.getGroupMap();
         if (id != -1) {
             if (!data.isClosed()) {
                 try {
                     int groupPos = groupMap.get(id);
-                    Log.d(TAG, "data.getCount() " + data.getCount());
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "data.getCount() " + data.getCount());
+                    }
                     mCatalogAdapter.setChildrenCursor(groupPos, data);
                 } catch (Exception e) {
                     Log.w(TAG, e);
@@ -348,7 +372,9 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         int id = loader.getId();
-        Log.d(TAG, "onLoaderReset() for loader_id " + id);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onLoaderReset() for loader_id " + id);
+        }
         if (mCatalogAdapter == null) {
             return;
         }
