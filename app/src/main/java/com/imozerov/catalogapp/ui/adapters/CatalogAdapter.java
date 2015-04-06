@@ -77,8 +77,12 @@ public class CatalogAdapter extends CursorTreeAdapter {
             categoryNameView.setText(category.getName());
         }
 
-        if (categoryImageView != null && category.getImage() != null) {
-            categoryImageView.setImageBitmap(category.getImage());
+        if (categoryImageView != null) {
+            if (category.getImage() != null) {
+                categoryImageView.setImageBitmap(category.getImage());
+            } else {
+                categoryImageView.setImageResource(R.drawable.abc_cab_background_internal_bg);
+            }
         }
     }
 
