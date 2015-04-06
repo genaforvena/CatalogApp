@@ -251,6 +251,20 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
     }
 
     @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to exit?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        CatalogActivity.this.finish();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    @Override
     public boolean onQueryTextChange(String query) {
         filterList(query);
         expandAll();
