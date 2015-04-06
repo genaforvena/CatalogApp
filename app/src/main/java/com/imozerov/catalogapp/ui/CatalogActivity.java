@@ -272,7 +272,6 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
     @Override
     public boolean onClose() {
         filterList("");
-        expandAll();
         return true;
     }
 

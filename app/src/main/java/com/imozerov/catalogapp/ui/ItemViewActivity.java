@@ -3,7 +3,9 @@ package com.imozerov.catalogapp.ui;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,7 @@ public class ItemViewActivity extends ActionBarActivity {
     private ImageView mItemImage;
     private TextView mItemDescription;
     private Item mItem;
+    private ShareActionProvider mShareActionProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +86,21 @@ public class ItemViewActivity extends ActionBarActivity {
             getMenuInflater().inflate(R.menu.menu_item_default_item, menu);
         }
 
+        MenuItem item = menu.findItem(R.id.menu_item_share);
+        item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                sharingIntent.setType("text/plain");
+                sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, mItem.getName());
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, mItem.getDescription());
+                startActivity(Intent.createChooser(sharingIntent, "Share via"));
+                return true;
+            }
+        });
+
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+
         return true;
     }
 
@@ -106,6 +124,4 @@ public class ItemViewActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-
 }
