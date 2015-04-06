@@ -51,6 +51,7 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mCatalogDataSource = new CatalogDataSource(this);
         mCatalogDataSource.open();
 
@@ -260,7 +261,11 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        CatalogActivity.this.finish();
+                        Intent startMain = new Intent(Intent.ACTION_MAIN);
+                        startMain.addCategory(Intent.CATEGORY_HOME);
+                        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(startMain);
+                        finish();
                     }
                 })
                 .setNegativeButton("No", null)
