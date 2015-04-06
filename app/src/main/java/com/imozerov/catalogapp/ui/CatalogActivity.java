@@ -133,9 +133,9 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
         ExpandableListView listView = (ExpandableListView) parent;
         long pos = listView.getExpandableListPosition(position);
 
-        int itemType = ExpandableListView.getPackedPositionType(pos);
-        int groupPos = ExpandableListView.getPackedPositionGroup(pos);
-        int childPos = ExpandableListView.getPackedPositionChild(pos);
+        final int itemType = ExpandableListView.getPackedPositionType(pos);
+        final int groupPos = ExpandableListView.getPackedPositionGroup(pos);
+        final int childPos = ExpandableListView.getPackedPositionChild(pos);
 
         boolean isItemClicked = itemType == ExpandableListView.PACKED_POSITION_TYPE_CHILD;
         boolean isCategoryClicked = itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP;
@@ -154,8 +154,12 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                                 break;
                             }
 
+                            Cursor cursor = mCatalogAdapter.getGroup(groupPos);
+                            final Category selectedCategory = CatalogDataSource.cursorToCategory(cursor);
+
                             intent = new Intent(CatalogActivity.this, AddItemActivity.class);
                             intent.putExtra(AddItemActivity.ITEM_KEY, selectedItem);
+                            intent.putExtra(AddItemActivity.CATEGORY_KEY, selectedCategory);
                             startActivity(intent);
                             break;
                         case 1:

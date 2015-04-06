@@ -89,11 +89,11 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
             mItem = editItem;
             mNameField.setText(mItem.getName());
             mDescriptionField.setText(mItem.getDescription());
-            mCategorySpinner.setSelection(indexOf(categoryList, mItem.getCategory()));
             if (mItem.getImage() != null) {
                 mImageField.setImageBitmap(mItem.getImage());
             }
-        } else if (categoryToAdd != null) {
+        }
+        if (categoryToAdd != null) {
             mCategorySpinner.setSelection(indexOf(categoryList, categoryToAdd));
         }
     }
