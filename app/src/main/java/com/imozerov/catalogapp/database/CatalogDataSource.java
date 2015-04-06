@@ -143,13 +143,16 @@ public class CatalogDataSource {
             return;
         }
         ContentValues values = new ContentValues();
+        if (item.getId() != 0) {
+            values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_ID, item.getId());
+        }
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID, item.getCategory().getId());
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION, item.getDescription());
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE, ImageUtils.getBytes(item.getImage()));
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED, item.isUserDefined() ? 1 : 0);
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_NAME, item.getName());
-        mDatabase.insert(MySQLiteOpenHelper.TABLE_ITEMS, null,
-                values);
+        mDatabase.insertWithOnConflict(MySQLiteOpenHelper.TABLE_ITEMS, null,
+                values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
     public void addCategory(Category category) {

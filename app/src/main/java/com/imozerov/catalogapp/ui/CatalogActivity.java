@@ -149,6 +149,14 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                     Intent intent;
                     switch (which) {
                         case 0:
+                            if (!selectedItem.isUserDefined()) {
+                                Toast.makeText(CatalogActivity.this, "Cannot edit predefined item!", Toast.LENGTH_SHORT).show();
+                                break;
+                            }
+
+                            intent = new Intent(CatalogActivity.this, AddItemActivity.class);
+                            intent.putExtra(AddItemActivity.ITEM_KEY, selectedItem);
+                            startActivity(intent);
                             break;
                         case 1:
                             if (!selectedItem.isUserDefined()) {
@@ -202,6 +210,9 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                             startService(intent);
                             break;
                         case 2:
+                            intent = new Intent(CatalogActivity.this, AddItemActivity.class);
+                            intent.putExtra(AddItemActivity.CATEGORY_KEY, selectedCategory);
+                            startActivity(intent);
                             break;
                         case 3:
                             intent = new Intent(CatalogActivity.this, AddCategoryActivity.class);

@@ -1,8 +1,8 @@
 package com.imozerov.catalogapp.ui;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -14,20 +14,22 @@ import android.widget.Spinner;
 
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.database.CatalogDataSource;
-import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.ImageUtils;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
+
+import java.util.List;
 
 public class AddItemActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddItemActivity.class.getName();
 
     public static final String ITEM_KEY = TAG + ".item";
-    private static final int LOAD_IMAGE = 123;
+    public static final String CATEGORY_KEY = TAG + ".category";
     public static final String ITEM_IMAGE_PATH = TAG + ".was_image_added";
-
+    private static final int LOAD_IMAGE = 123;
     private EditText mNameField;
     private EditText mDescriptionField;
     private Spinner mCategorySpinner;
@@ -36,6 +38,16 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
     private CatalogDataSource mDatabase;
 
     private String mImagePath;
+    private Item mItem;
+
+    private static <T> int indexOf(List<T> source, T target) {
+        for (int i = 0; i < source.size(); i++) {
+            if (source.get(i).equals(target)) {
+                return i;
+            }
+        }
+        return 0;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +63,8 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         mDatabase = new CatalogDataSource(this);
 
         mDatabase.open();
-        ArrayAdapter<Category> spinnerArrayAdapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item, mDatabase.getCategories());
+        List<Category> categoryList = mDatabase.getCategories();
+        ArrayAdapter<Category> spinnerArrayAdapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item, categoryList);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mCategorySpinner.setAdapter(spinnerArrayAdapter);
 
@@ -69,6 +82,20 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         });
 
         mDoneButton.setOnClickListener(this);
+
+        Item editItem = getIntent().getParcelableExtra(ITEM_KEY);
+        Category categoryToAdd = getIntent().getParcelableExtra(CATEGORY_KEY);
+        if (editItem != null) {
+            mItem = editItem;
+            mNameField.setText(mItem.getName());
+            mDescriptionField.setText(mItem.getDescription());
+            mCategorySpinner.setSelection(indexOf(categoryList, mItem.getCategory()));
+            if (mItem.getImage() != null) {
+                mImageField.setImageBitmap(mItem.getImage());
+            }
+        } else if (categoryToAdd != null) {
+            mCategorySpinner.setSelection(indexOf(categoryList, categoryToAdd));
+        }
     }
 
     @Override
@@ -78,7 +105,8 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
             String picturePath = ImageUtils.getImagePath(this, data);
             Log.i(TAG, "New image path is " + picturePath);
             mImagePath = picturePath;
-            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);;
+            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
+            ;
         }
     }
 
@@ -102,7 +130,13 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         }
         Category itemsCategory = (Category) mCategorySpinner.getSelectedItem();
 
-        Item newItem = new Item();
+        Item newItem;
+        if (mItem == null) {
+            newItem = new Item();
+        } else {
+            newItem = mItem;
+            newItem.setId(mItem.getId());
+        }
         newItem.setName(mNameField.getText().toString());
         newItem.setCategory(itemsCategory);
         newItem.setDescription(mDescriptionField.getText().toString());
