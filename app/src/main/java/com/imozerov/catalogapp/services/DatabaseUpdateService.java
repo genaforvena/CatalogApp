@@ -43,10 +43,6 @@ public class DatabaseUpdateService extends IntentService {
         String action = intent.getAction();
         if (action.equals(Constants.ACTION_ADD_ITEM)) {
             Item newItem = intent.getParcelableExtra(AddItemActivity.ITEM_KEY);
-            String imagePath = intent.getStringExtra(AddItemActivity.ITEM_IMAGE_PATH);
-            if (!TextUtils.isEmpty(imagePath)) {
-                newItem.setImage(ImageUtils.createBigImageBitmap(imagePath));
-            }
             mCatalogDataSource.addItem(newItem);
             Log.i(TAG, "Item " + newItem + " saved into db.");
         } else if (action.equals(Constants.ACTION_ADD_CATEGORY)) {

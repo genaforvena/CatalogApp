@@ -10,6 +10,7 @@ import android.util.Log;
 import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.models.Category;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.utils.FixedSizeArrayList;
 import com.imozerov.catalogapp.utils.ImageUtils;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class CatalogDataSource {
             MySQLiteOpenHelper.ITEMS_COLUMN_ID,
             MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID,
             MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION,
-            MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE,
+            MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_1,
             MySQLiteOpenHelper.ITEMS_COLUMN_NAME,
             MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED,
 
@@ -41,6 +42,47 @@ public class CatalogDataSource {
 
     public CatalogDataSource(Context context) {
         mOpenHelper = new MySQLiteOpenHelper(context);
+    }
+
+    public static Item cursorToItem(Cursor cursor, Category category) {
+        if (cursor == null) {
+            return null;
+        }
+
+        Item item = new Item();
+        item.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED)) == 1 ? true : false);
+        item.setId(cursor.getLong(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_ID)));
+        item.setName(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_NAME)));
+        item.setDescription(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION)));
+        item.setCategory(category);
+
+        FixedSizeArrayList itemsImages = new FixedSizeArrayList(4);
+
+        itemsImages.add(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_1)));
+        itemsImages.add(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_2)));
+        itemsImages.add(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_3)));
+        itemsImages.add(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_4)));
+
+        if (!itemsImages.isEmpty()) {
+            item.setImages(itemsImages);
+        }
+
+        return item;
+    }
+
+    public static Category cursorToCategory(Cursor cursor) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "cursor is " + cursor);
+        }
+        if (cursor == null) {
+            return null;
+        }
+        Category category = new Category();
+        category.setId(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_ID)));
+        category.setImage(ImageUtils.getImage(cursor.getBlob(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_IMAGE))));
+        category.setName(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_NAME)));
+        category.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_IS_USER_DEFINED)) == 1 ? true : false);
+        return category;
     }
 
     public void open() throws SQLException {
@@ -80,52 +122,14 @@ public class CatalogDataSource {
         return item;
     }
 
-    public Cursor getItemsCursorWithoutImage(Category category) {
-        String query = "select "
-                + MySQLiteOpenHelper.ITEMS_COLUMN_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED
-                + " from " + MySQLiteOpenHelper.TABLE_ITEMS
-                + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + category.getId() + "'";
-        return mDatabase.rawQuery(query, null);
-    }
-
-    public Cursor getItemsCursorWithoutImage(int categoryId) {
-        String query = "select "
-                + MySQLiteOpenHelper.ITEMS_COLUMN_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED
-                + " from " + MySQLiteOpenHelper.TABLE_ITEMS
+    public Cursor getItemsCursor(int categoryId) {
+        String query = "select * from " + MySQLiteOpenHelper.TABLE_ITEMS
                 + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + categoryId + "'";
         return mDatabase.rawQuery(query, null);
     }
 
-    public Cursor getItemsCursorWithoutImage(Category category, CharSequence constraint) {
-        String query = "select "
-                + MySQLiteOpenHelper.ITEMS_COLUMN_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED
-                + " from " + MySQLiteOpenHelper.TABLE_ITEMS
-                + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
-                + " LIKE '%" + constraint
-                + "%' AND " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + category.getId() + "'";
-        return mDatabase.rawQuery(query, null);
-    }
-
-    public Cursor getItemsCursorWithoutImage(int categoryId, CharSequence constraint) {
-        String query = "select "
-                + MySQLiteOpenHelper.ITEMS_COLUMN_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
-                + ", " + MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED
-                + " from " + MySQLiteOpenHelper.TABLE_ITEMS
+    public Cursor getItemsCursor(int categoryId, CharSequence constraint) {
+        String query = "select * from " + MySQLiteOpenHelper.TABLE_ITEMS
                 + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_NAME
                 + " LIKE '%" + constraint
                 + "%' AND " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + categoryId + "'";
@@ -148,7 +152,14 @@ public class CatalogDataSource {
         }
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID, item.getCategory().getId());
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION, item.getDescription());
-        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE, ImageUtils.getBytes(item.getImage()));
+        if (item.getImages() != null) {
+            int i = 1;
+            for (String imagePath : item.getImages()) {
+                values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_X + i, imagePath);
+                i++;
+            }
+        }
+
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED, item.isUserDefined() ? 1 : 0);
         values.put(MySQLiteOpenHelper.ITEMS_COLUMN_NAME, item.getName());
         mDatabase.insertWithOnConflict(MySQLiteOpenHelper.TABLE_ITEMS, null,
@@ -191,39 +202,5 @@ public class CatalogDataSource {
         Log.i(TAG, "Comment deleted with id: " + id);
         mDatabase.delete(MySQLiteOpenHelper.TABLE_CATEGORIES, MySQLiteOpenHelper.CATEGORIES_COLUMN_ID
                 + " = " + id, null);
-    }
-
-    public static Item cursorToItem(Cursor cursor, Category category) {
-        if (cursor == null) {
-            return null;
-        }
-
-        Item item = new Item();
-        item.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED)) == 1 ? true : false);
-        item.setId(cursor.getLong(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_ID)));
-        item.setName(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_NAME)));
-        item.setDescription(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION)));
-        item.setCategory(category);
-
-        if (cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE) != -1 && cursor.getBlob(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE)) != null) {
-            item.setImage(ImageUtils.getImage(cursor.getBlob(cursor.getColumnIndex(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE))));
-        }
-
-        return item;
-    }
-
-    public static Category cursorToCategory(Cursor cursor) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "cursor is " + cursor);
-        }
-        if (cursor == null) {
-            return null;
-        }
-        Category category = new Category();
-        category.setId(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_ID)));
-        category.setImage(ImageUtils.getImage(cursor.getBlob(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_IMAGE))));
-        category.setName(cursor.getString(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_NAME)));
-        category.setUserDefined(cursor.getInt(cursor.getColumnIndex(MySQLiteOpenHelper.CATEGORIES_COLUMN_IS_USER_DEFINED)) == 1 ? true : false);
-        return category;
     }
 }

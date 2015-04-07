@@ -23,15 +23,55 @@
         android:layout_below="@+id/activity_add_item_header" />
 
 
-    <ImageView
-        android:id="@+id/activity_add_item_image"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:scaleType="fitXY"
-        android:layout_margin="10dp"
+    <RelativeLayout
+        android:id="@+id/activity_add_images_layout"
+        android:layout_width="wrap_content"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
-        android:layout_below="@+id/activity_add_item_category"/>
+        android:layout_below="@+id/activity_add_item_category"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/activity_add_item_image1"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:layout_margin="10dp"
+            android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
+            />
+
+        <ImageView
+            android:id="@+id/activity_add_item_image2"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:layout_margin="10dp"
+            android:layout_toRightOf="@+id/activity_add_item_image1"
+            android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
+            />
+
+        <ImageView
+            android:id="@+id/activity_add_item_image3"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:layout_margin="10dp"
+            android:layout_below="@+id/activity_add_item_image1"
+            android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
+            />
+
+        <ImageView
+            android:id="@+id/activity_add_item_image4"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitXY"
+            android:layout_margin="10dp"
+            android:layout_below="@+id/activity_add_item_image1"
+            android:layout_toRightOf="@+id/activity_add_item_image1"
+            android:src="@drawable/abc_ic_commit_search_api_mtrl_alpha"
+            />
+
+        </RelativeLayout>
+
 
     <EditText
         android:id="@+id/activity_add_item_name"
@@ -40,7 +80,7 @@
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/activity_add_item_image" />
+        android:layout_below="@+id/activity_add_images_layout" />
 
     <EditText
         android:id="@+id/activity_add_item_description"

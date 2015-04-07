@@ -1,12 +1,10 @@
 package com.imozerov.catalogapp.ui;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -16,10 +14,11 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.imozerov.catalogapp.R;
-import com.imozerov.catalogapp.database.CatalogDataSource;
-import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.models.Item;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.utils.Constants;
+import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
+import com.imozerov.catalogapp.utils.OnSwipeTouchListener;
 
 public class ItemViewActivity extends ActionBarActivity {
     private static final String TAG = ItemViewActivity.class.getName();
@@ -47,32 +46,21 @@ public class ItemViewActivity extends ActionBarActivity {
 
         mItemName.setText(mItem.getName());
         mItemDescription.setText(mItem.getDescription());
-        new AsyncTask<Void, Void, Item>() {
-            @Override
-            protected Item doInBackground(Void... params) {
-                CatalogDataSource catalogDataSource = new CatalogDataSource(ItemViewActivity.this);
-                catalogDataSource.open();
-                Item item = catalogDataSource.getItem(mItem.getId());
-                catalogDataSource.close();
-                return item;
-            }
 
-            @Override
-            protected void onPostExecute(Item item) {
-                if (item == null) {
-                    Log.w(TAG, "Item is null.");
-                    return;
+        if (mItem.getImages() != null && !mItem.getImages().isEmpty()) {
+            new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.getImages().next());
+            mItemImage.setOnTouchListener(new OnSwipeTouchListener(this) {
+                @Override
+                public void onSwipeRight() {
+                    new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.getImages().previous());
                 }
 
-                if (item.getImage() == null) {
-                    Log.w(TAG, "Item has no image.");
-                    return;
+                @Override
+                public void onSwipeLeft() {
+                    new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.getImages().next());
                 }
-
-                mItemImage.setImageBitmap(item.getImage());
-            }
-        }.execute();
-
+            });
+        }
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);

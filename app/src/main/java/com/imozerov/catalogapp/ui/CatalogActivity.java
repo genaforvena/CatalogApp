@@ -331,9 +331,9 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                 @Override
                 public Cursor loadInBackground() {
                     if (TextUtils.isEmpty(mSearchQuery)) {
-                        return mCatalogDataSource.getItemsCursorWithoutImage(id);
+                        return mCatalogDataSource.getItemsCursor(id);
                     } else {
-                        return mCatalogDataSource.getItemsCursorWithoutImage(id, mSearchQuery);
+                        return mCatalogDataSource.getItemsCursor(id, mSearchQuery);
                     }
                 }
             };

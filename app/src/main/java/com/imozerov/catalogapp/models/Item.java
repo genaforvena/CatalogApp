@@ -1,21 +1,68 @@
 package com.imozerov.catalogapp.models;
 
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.imozerov.catalogapp.utils.FixedSizeArrayList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by imozerov on 22.03.2015.
  */
 public class Item implements Parcelable {
+    public static final int MAX_IMAGES = 4;
+
     private long mId;
     private String mName;
     private boolean mIsUserDefined;
     private String mDescription;
-    private Bitmap mImage;
+    private FixedSizeArrayList mImages;
     private Category mCategory;
 
     public Item() {}
+
+    protected Item(Parcel in) {
+        mId = in.readLong();
+        mName = in.readString();
+        mIsUserDefined = in.readByte() != 0x00;
+        mDescription = in.readString();
+        mImages = new FixedSizeArrayList(4);
+        Object images = in.readValue(FixedSizeArrayList.class.getClassLoader());
+        if (images != null) {
+            mImages.addAll(((ArrayList<String>) images));
+        }
+        mCategory = (Category) in.readValue(Category.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(mId);
+        dest.writeString(mName);
+        dest.writeByte((byte) (mIsUserDefined ? 0x01 : 0x00));
+        dest.writeString(mDescription);
+        dest.writeValue(mImages);
+        dest.writeValue(mCategory);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Item> CREATOR = new Parcelable.Creator<Item>() {
+        @Override
+        public Item createFromParcel(Parcel in) {
+            return new Item(in);
+        }
+
+        @Override
+        public Item[] newArray(int size) {
+            return new Item[size];
+        }
+    };
 
     @Override
     public boolean equals(Object o) {
@@ -34,6 +81,8 @@ public class Item implements Parcelable {
         return (int) (mId ^ (mId >>> 32));
     }
 
+
+
     @Override
     public String toString() {
         return "Item{" +
@@ -41,44 +90,9 @@ public class Item implements Parcelable {
                 ", mName='" + mName + '\'' +
                 ", mIsUserDefined=" + mIsUserDefined +
                 ", mDescription='" + mDescription + '\'' +
-                ", mImage='" + mImage + '\'' +
+                ", mImages='" + mImages + '\'' +
                 '}';
     }
-
-    protected Item(Parcel in) {
-        mId = in.readLong();
-        mName = in.readString();
-        mIsUserDefined = in.readByte() != 0x00;
-        mDescription = in.readString();
-        mCategory = (Category) in.readValue(Category.class.getClassLoader());
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(mId);
-        dest.writeString(mName);
-        dest.writeByte((byte) (mIsUserDefined ? 0x01 : 0x00));
-        dest.writeString(mDescription);
-        dest.writeValue(mCategory);
-    }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Item> CREATOR = new Parcelable.Creator<Item>() {
-        @Override
-        public Item createFromParcel(Parcel in) {
-            return new Item(in);
-        }
-
-        @Override
-        public Item[] newArray(int size) {
-            return new Item[size];
-        }
-    };
 
     public long getId() {
         return mId;
@@ -112,12 +126,12 @@ public class Item implements Parcelable {
         mDescription = description;
     }
 
-    public Bitmap getImage() {
-        return mImage;
+    public FixedSizeArrayList getImages() {
+        return mImages;
     }
 
-    public void setImage(Bitmap image) {
-        mImage = image;
+    public void setImages(FixedSizeArrayList images) {
+        mImages = images;
     }
 
     public Category getCategory() {

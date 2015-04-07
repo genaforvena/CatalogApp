@@ -6,9 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.imozerov.catalogapp.models.Item;
-import com.imozerov.catalogapp.utils.ImageUtils;
-
 /**
  * Created by imozerov on 24.03.2015.
  */
@@ -26,23 +23,31 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
             ");";
     public static final String TABLE_ITEMS = "items";
     public static final String ITEMS_COLUMN_ID = "_id";
-    public static final String ITEMS_COLUMN_IMAGE = "image";
+    public static final String ITEMS_COLUMN_IMAGE_X = "image";
+    public static final String ITEMS_COLUMN_IMAGE_1 = "image1";
+    public static final String ITEMS_COLUMN_IMAGE_2 = "image2";
+    public static final String ITEMS_COLUMN_IMAGE_3 = "image3";
+    public static final String ITEMS_COLUMN_IMAGE_4 = "image4";
     public static final String ITEMS_COLUMN_NAME = "name";
     public static final String ITEMS_COLUMN_DESCRIPTION = "description";
     public static final String ITEMS_COLUMN_CATEGORY_ID = "category";
     public static final String ITEMS_COLUMN_IS_USER_DEFINED = "is_user_defined";
+
     public static final String CREATE_TABLE_ITMES = "create table "
-            + TABLE_ITEMS + "(" + ITEMS_COLUMN_ID
-            + " integer primary key autoincrement, " + ITEMS_COLUMN_IMAGE
-            + " blob, " + ITEMS_COLUMN_NAME + " text, "
+            + TABLE_ITEMS + "("
+            + ITEMS_COLUMN_ID + " integer primary key autoincrement, "
+            + ITEMS_COLUMN_IMAGE_1 + " text, "
+            + ITEMS_COLUMN_IMAGE_2 + " text, "
+            + ITEMS_COLUMN_IMAGE_3 + " text, "
+            + ITEMS_COLUMN_IMAGE_4 + " text, "
+            + ITEMS_COLUMN_NAME + " text, "
             + ITEMS_COLUMN_DESCRIPTION + " text, "
             + ITEMS_COLUMN_CATEGORY_ID + " integer, "
             + ITEMS_COLUMN_IS_USER_DEFINED + " integer" +
             ");";
     private static final String TAG = MySQLiteOpenHelper.class.getName();
     private static final String DATABASE_NAME = "catalog.db";
-    private static final int DATABASE_VERSION = 1;
-
+    private static final int DATABASE_VERSION = 2;
 
     public MySQLiteOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
