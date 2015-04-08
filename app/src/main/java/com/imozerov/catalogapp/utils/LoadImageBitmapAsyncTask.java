@@ -2,6 +2,7 @@ package com.imozerov.catalogapp.utils;
 
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
@@ -20,6 +21,9 @@ public class LoadImageBitmapAsyncTask extends AsyncTask<String, Void, Bitmap> {
     @Override
     protected Bitmap doInBackground(String... params) {
         mImagePath = params[0];
+        if (TextUtils.isEmpty(mImagePath)) {
+            return null;
+        }
         return ImageUtils.createBigImageBitmap(mImagePath);
     }
 

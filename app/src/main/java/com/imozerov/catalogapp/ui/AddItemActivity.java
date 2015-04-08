@@ -1,5 +1,6 @@
 package com.imozerov.catalogapp.ui;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -29,11 +30,15 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
     private static final String TAG = AddItemActivity.class.getName();
     public static final String ITEM_KEY = TAG + ".item";
     public static final String CATEGORY_KEY = TAG + ".category";
-    public static final String ITEM_IMAGE_PATH = TAG + ".was_image_added";
     private static final int LOAD_IMAGE_1 = 123;
     private static final int LOAD_IMAGE_2 = 223;
     private static final int LOAD_IMAGE_3 = 323;
     private static final int LOAD_IMAGE_4 = 423;
+    private static final String IMAGE1 = TAG + ".image1";
+    private static final String IMAGE2 = TAG + ".image2";
+    private static final String IMAGE3 = TAG + ".image3";
+    private static final String IMAGE4 = TAG + ".image4";
+    private static final String CATEGORY = TAG + ".category";
     private EditText mNameField;
     private EditText mDescriptionField;
     private Spinner mCategorySpinner;
@@ -45,15 +50,6 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
     private CatalogDataSource mDatabase;
 
     private Item mItem;
-
-    private static <T> int indexOf(List<T> source, T target) {
-        for (int i = 0; i < source.size(); i++) {
-            if (source.get(i).equals(target)) {
-                return i;
-            }
-        }
-        return 0;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +74,6 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         ArrayAdapter<Category> spinnerArrayAdapter = new ArrayAdapter<Category>(this, android.R.layout.simple_spinner_item, categoryList);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mCategorySpinner.setAdapter(spinnerArrayAdapter);
-
 
         mImageField1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,35 +109,58 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
 
         mDoneButton.setOnClickListener(this);
 
-        Item editItem = getIntent().getParcelableExtra(ITEM_KEY);
-        Category categoryToAdd = getIntent().getParcelableExtra(CATEGORY_KEY);
-        if (editItem != null) {
-            mItem = editItem;
-            mNameField.setText(mItem.getName());
-            mDescriptionField.setText(mItem.getDescription());
+        if (savedInstanceState != null) {
+            // Activity was recreated.
+            new LoadImageBitmapAsyncTask(mImageField1).execute(savedInstanceState.getString(IMAGE1));
+            new LoadImageBitmapAsyncTask(mImageField2).execute(savedInstanceState.getString(IMAGE2));
+            new LoadImageBitmapAsyncTask(mImageField3).execute(savedInstanceState.getString(IMAGE3));
+            new LoadImageBitmapAsyncTask(mImageField4).execute(savedInstanceState.getString(IMAGE4));
+            mCategorySpinner.setSelection(savedInstanceState.getInt(CATEGORY));
+        } else {
+            // Activity is newly created
+            Item editItem = getIntent().getParcelableExtra(ITEM_KEY);
+            Category categoryToAdd = getIntent().getParcelableExtra(CATEGORY_KEY);
+            if (editItem != null) {
+                ActionBar ab = getActionBar();
+                ab.setTitle("Edit item");
+                mItem = editItem;
+                mNameField.setText(mItem.getName());
+                mDescriptionField.setText(mItem.getDescription());
 
-            if (mItem.getImages() != null && !mItem.getImages().isEmpty()) {
-                int imagesSize = mItem.getImages().size();
-                if (imagesSize == 1) {
-                    new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
-                } else if (imagesSize == 2) {
-                    new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
-                    new LoadImageBitmapAsyncTask(mImageField2).execute(mItem.getImages().get(1));
-                } else if (imagesSize == 3) {
-                    new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
-                    new LoadImageBitmapAsyncTask(mImageField2).execute(mItem.getImages().get(1));
-                    new LoadImageBitmapAsyncTask(mImageField3).execute(mItem.getImages().get(2));
-                } else if (imagesSize == 4) {
-                    new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
-                    new LoadImageBitmapAsyncTask(mImageField2).execute(mItem.getImages().get(1));
-                    new LoadImageBitmapAsyncTask(mImageField3).execute(mItem.getImages().get(2));
-                    new LoadImageBitmapAsyncTask(mImageField4).execute(mItem.getImages().get(3));
+                if (mItem.getImages() != null && !mItem.getImages().isEmpty()) {
+                    int imagesSize = mItem.getImages().size();
+                    if (imagesSize == 1) {
+                        new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
+                    } else if (imagesSize == 2) {
+                        new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
+                        new LoadImageBitmapAsyncTask(mImageField2).execute(mItem.getImages().get(1));
+                    } else if (imagesSize == 3) {
+                        new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
+                        new LoadImageBitmapAsyncTask(mImageField2).execute(mItem.getImages().get(1));
+                        new LoadImageBitmapAsyncTask(mImageField3).execute(mItem.getImages().get(2));
+                    } else if (imagesSize == 4) {
+                        new LoadImageBitmapAsyncTask(mImageField1).execute(mItem.getImages().get(0));
+                        new LoadImageBitmapAsyncTask(mImageField2).execute(mItem.getImages().get(1));
+                        new LoadImageBitmapAsyncTask(mImageField3).execute(mItem.getImages().get(2));
+                        new LoadImageBitmapAsyncTask(mImageField4).execute(mItem.getImages().get(3));
+                    }
                 }
             }
+            if (categoryToAdd != null) {
+                mCategorySpinner.setSelection(indexOf(categoryList, categoryToAdd));
+            }
         }
-        if (categoryToAdd != null) {
-            mCategorySpinner.setSelection(indexOf(categoryList, categoryToAdd));
-        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString(IMAGE1, (String) mImageField1.getTag());
+        savedInstanceState.putString(IMAGE2, (String) mImageField2.getTag());
+        savedInstanceState.putString(IMAGE3, (String) mImageField3.getTag());
+        savedInstanceState.putString(IMAGE4, (String) mImageField4.getTag());
+        savedInstanceState.putInt(CATEGORY, mCategorySpinner.getSelectedItemPosition());
+
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -206,13 +224,9 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
 
         FixedSizeArrayList itemsImages = new FixedSizeArrayList(4);
         itemsImages.add((String) mImageField1.getTag());
-        Log.d(TAG, "mImageField1.getTag() " + mImageField1.getTag());
         itemsImages.add((String) mImageField2.getTag());
-        Log.d(TAG, "mImageField2.getTag() " + mImageField2.getTag());
         itemsImages.add((String) mImageField3.getTag());
-        Log.d(TAG, "mImageField3.getTag() " + mImageField3.getTag());
         itemsImages.add((String) mImageField4.getTag());
-        Log.d(TAG, "mImageField4.getTag() " + mImageField4.getTag());
         newItem.setImages(itemsImages);
 
         Intent intent = new Intent(this, DatabaseUpdateService.class);
@@ -223,5 +237,14 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
         startActivity(new Intent(this, CatalogActivity.class));
         finish();
         Log.i(TAG, "Created new item " + newItem);
+    }
+
+    private static <T> int indexOf(List<T> source, T target) {
+        for (int i = 0; i < source.size(); i++) {
+            if (source.get(i).equals(target)) {
+                return i;
+            }
+        }
+        return 0;
     }
 }
