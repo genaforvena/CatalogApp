@@ -1,6 +1,7 @@
 package com.imozerov.catalogapp.ui;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
@@ -19,6 +20,9 @@ import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 import com.imozerov.catalogapp.utils.OnSwipeTouchListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemViewActivity extends ActionBarActivity {
     private static final String TAG = ItemViewActivity.class.getName();
@@ -78,10 +82,17 @@ public class ItemViewActivity extends ActionBarActivity {
         item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
-                sharingIntent.setType("text/plain");
+                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
+                sharingIntent.setType("*/*");
                 sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, mItem.getName());
                 sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, mItem.getDescription());
+                ArrayList<Uri> images = new ArrayList<>();
+                if (mItem.getImages() != null) {
+                    for (String path : mItem.getImages()) {
+                        images.add(Uri.parse(path));
+                    }
+                }
+                sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, images);
                 startActivity(Intent.createChooser(sharingIntent, "Share via"));
                 return true;
             }
