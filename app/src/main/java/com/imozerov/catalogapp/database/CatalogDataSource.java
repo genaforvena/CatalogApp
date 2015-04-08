@@ -122,6 +122,15 @@ public class CatalogDataSource {
         return item;
     }
 
+    public Category getCategory(long categoryId) {
+        String query = "select * from " + MySQLiteOpenHelper.TABLE_CATEGORIES + " where " + MySQLiteOpenHelper.CATEGORIES_COLUMN_ID + " = " + categoryId;
+        Cursor cursor = mDatabase.rawQuery(query, null);
+        cursor.moveToFirst();
+        Category category = cursorToCategory(cursor);
+        cursor.close();
+        return category;
+    }
+
     public Cursor getItemsCursor(int categoryId) {
         String query = "select * from " + MySQLiteOpenHelper.TABLE_ITEMS
                 + " where " + MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID + " = '" + categoryId + "'";

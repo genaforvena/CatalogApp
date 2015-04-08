@@ -50,6 +50,10 @@ public class DatabaseUpdateService extends IntentService {
             String imagePath = intent.getStringExtra(AddCategoryActivity.CATEGORY_IMAGE_PATH);
             if (!TextUtils.isEmpty(imagePath)) {
                 category.setImage(ImageUtils.createSmallImageBitmap(imagePath));
+            } else {
+                if (category.getId() != 0) {
+                    category.setImage(mCatalogDataSource.getCategory(category.getId()).getImage());
+                }
             }
             mCatalogDataSource.addCategory(category);
             Log.i(TAG, "Category " + category + " saved into db.");

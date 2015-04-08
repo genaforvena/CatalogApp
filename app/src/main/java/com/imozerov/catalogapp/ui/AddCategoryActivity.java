@@ -1,6 +1,7 @@
 package com.imozerov.catalogapp.ui;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
@@ -11,24 +12,27 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.imozerov.catalogapp.R;
-import com.imozerov.catalogapp.services.DatabaseUpdateService;
+import com.imozerov.catalogapp.database.CatalogDataSource;
 import com.imozerov.catalogapp.models.Category;
+import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.ImageUtils;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
+
+import java.lang.ref.WeakReference;
 
 public class AddCategoryActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = AddCategoryActivity.class.getName();
 
     public static final String CATEGORY_KEY = TAG + ".category";
-    private static final int LOAD_IMAGE = 123;
     public static final String CATEGORY_IMAGE_PATH = TAG + ".category_image_path";
-
+    private static final String IMAGE = TAG + ".image";
+    private static final int LOAD_IMAGE = 123;
     private EditText mNameField;
     private ImageView mImageField;
     private Button mDoneButton;
+    private CatalogDataSource mCatalogDataSource;
 
-    private String mImagePath;
     private Category mCategory;
 
     @Override
@@ -50,19 +54,35 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
             }
         });
 
-        Category editCategory = getIntent().getParcelableExtra(CATEGORY_KEY);
+        if (savedInstanceState != null) {
+            new LoadImageBitmapAsyncTask(mImageField).execute((String) savedInstanceState.getString(IMAGE));
+        } else {
+            Category editCategory = getIntent().getParcelableExtra(CATEGORY_KEY);
+            if (editCategory != null) {
+                mCatalogDataSource = new CatalogDataSource(this);
+                mCategory = editCategory;
+                mNameField.setText(editCategory.getName());
+                new LoadCategoryFromDbTask(
+                        new CategoryLoadObserver() {
+                            @Override
+                            public void onCategoryLoaded(Category category) {
+                                if (category.getImage() != null) {
+                                    mImageField.setImageBitmap(category.getImage());
+                                }
+                            }
+                        }).execute(editCategory.getId());
+            }
 
-        if (editCategory != null) {
-            mCategory = editCategory;
-            mNameField.setText(editCategory.getName());
-            if (mCategory.getImage() != null) {
-                mImageField.setImageBitmap(editCategory.getImage());
+            if (mImageField.getTag() != null) {
+                new LoadImageBitmapAsyncTask(mImageField).execute((String) mImageField.getTag());
             }
         }
+    }
 
-        if (mImagePath != null) {
-            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
-        }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(IMAGE, (String) mImageField.getTag());
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -70,9 +90,7 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == LOAD_IMAGE && resultCode == RESULT_OK && data != null) {
             String picturePath = ImageUtils.getImagePath(this, data);
-            mImagePath = picturePath;
-            Log.i(TAG, "New image path is " + mImagePath);
-            new LoadImageBitmapAsyncTask(mImageField).execute(mImagePath);
+            new LoadImageBitmapAsyncTask(mImageField).execute(picturePath);
         }
     }
 
@@ -100,13 +118,47 @@ public class AddCategoryActivity extends ActionBarActivity implements View.OnCli
         Intent intent = new Intent(this, DatabaseUpdateService.class);
         intent.setAction(Constants.ACTION_ADD_CATEGORY);
         intent.putExtra(CATEGORY_KEY, mCategory);
-        if (!TextUtils.isEmpty(mImagePath)) {
-            intent.putExtra(CATEGORY_IMAGE_PATH, mImagePath);
+        if (!TextUtils.isEmpty((String) mImageField.getTag())) {
+            intent.putExtra(CATEGORY_IMAGE_PATH, (String) mImageField.getTag());
         }
         startService(intent);
 
         startActivity(new Intent(this, CatalogActivity.class));
         finish();
         Log.i(TAG, "Created new category " + mCategory);
+    }
+
+    private interface CategoryLoadObserver {
+        void onCategoryLoaded(Category category);
+    }
+
+    private class LoadCategoryFromDbTask extends AsyncTask<Long, Void, Category> {
+        private final WeakReference<CategoryLoadObserver> mObserver;
+
+        private LoadCategoryFromDbTask(CategoryLoadObserver observer) {
+            mObserver = new WeakReference<>(observer);
+        }
+
+        @Override
+        protected Category doInBackground(Long... categoryIds) {
+            if (categoryIds == null) {
+                return null;
+            }
+            mCatalogDataSource.open();
+            Category category = mCatalogDataSource.getCategory(categoryIds[0]);
+            mCatalogDataSource.close();
+            return category;
+        }
+
+        @Override
+        protected void onPostExecute(Category category) {
+            if (category == null) {
+                return;
+            }
+            CategoryLoadObserver observer = mObserver.get();
+            if (observer != null) {
+                observer.onCategoryLoaded(category);
+            }
+        }
     }
 }
