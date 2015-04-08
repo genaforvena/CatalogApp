@@ -171,10 +171,19 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                                 Toast.makeText(CatalogActivity.this, "Cannot delete predefined item!", Toast.LENGTH_SHORT).show();
                                 break;
                             }
-                            intent = new Intent(CatalogActivity.this, DatabaseUpdateService.class);
-                            intent.setAction(Constants.ACTION_DELETE_ITEM);
-                            intent.putExtra(ItemViewActivity.DELETED_ITEM_KEY, selectedItem);
-                            startService(intent);
+                            new AlertDialog.Builder(CatalogActivity.this)
+                                    .setMessage("Are you sure you want to delete item?")
+                                    .setCancelable(false)
+                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            Intent intent = new Intent(CatalogActivity.this, DatabaseUpdateService.class);
+                                            intent.setAction(Constants.ACTION_DELETE_ITEM);
+                                            intent.putExtra(ItemViewActivity.DELETED_ITEM_KEY, selectedItem);
+                                            startService(intent);
+                                        }
+                                    })
+                                    .setNegativeButton("No", null)
+                                    .show();
                             break;
                         default:
                             Log.e(TAG, "Weird item was picked! Which is " + which);
@@ -212,10 +221,19 @@ public class CatalogActivity extends ActionBarActivity implements LoaderManager.
                                 Toast.makeText(CatalogActivity.this, "Cannot delete predefined category!", Toast.LENGTH_SHORT).show();
                                 break;
                             }
-                            intent = new Intent(CatalogActivity.this, DatabaseUpdateService.class);
-                            intent.setAction(Constants.ACTION_DELETE_CATEGORY);
-                            intent.putExtra(ItemViewActivity.DELETED_CATEGORY_KEY, selectedCategory);
-                            startService(intent);
+                            new AlertDialog.Builder(CatalogActivity.this)
+                                    .setMessage("Are you sure you want to delete category?")
+                                    .setCancelable(false)
+                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            Intent intent = new Intent(CatalogActivity.this, DatabaseUpdateService.class);
+                                            intent.setAction(Constants.ACTION_DELETE_CATEGORY);
+                                            intent.putExtra(ItemViewActivity.DELETED_CATEGORY_KEY, selectedCategory);
+                                            startService(intent);
+                                        }
+                                    })
+                                    .setNegativeButton("No", null)
+                                    .show();
                             break;
                         case 2:
                             intent = new Intent(CatalogActivity.this, AddItemActivity.class);
