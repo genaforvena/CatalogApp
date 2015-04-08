@@ -24,12 +24,12 @@ public class LoadImageBitmapAsyncTask extends AsyncTask<String, Void, Bitmap> {
         if (TextUtils.isEmpty(mImagePath)) {
             return null;
         }
-        return ImageUtils.createBigImageBitmap(mImagePath);
+        return ImageUtils.createImageBitmap(mImagePath);
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
-        if (mImageView.get() == null) {
+        if (mImageView.get() == null || bitmap == null) {
             return;
         }
 

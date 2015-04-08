@@ -30,19 +30,11 @@ public class ImageUtils {
         return picturePath;
     }
 
-    public static Bitmap createSmallImageBitmap(String imagePath) {
-        return decodeSampledBitmapFromResource(imagePath, 50, 50);
-    }
-
-    public static Bitmap createBigImageBitmap(String imagePath) {
-        return decodeSampledBitmapFromResource(imagePath, 300, 300);
-    }
-
-    private static Bitmap decodeSampledBitmapFromResource(String imagePath, int reqWidth, int reqHeight) {
+    public static Bitmap createImageBitmap(String imagePath) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(imagePath, options);
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.inSampleSize = calculateInSampleSize(options, 300, 300);
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeFile(imagePath, options);
     }
