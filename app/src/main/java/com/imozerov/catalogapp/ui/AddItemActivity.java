@@ -121,8 +121,6 @@ public class AddItemActivity extends ActionBarActivity implements View.OnClickLi
             Item editItem = getIntent().getParcelableExtra(ITEM_KEY);
             Category categoryToAdd = getIntent().getParcelableExtra(CATEGORY_KEY);
             if (editItem != null) {
-                ActionBar ab = getActionBar();
-                ab.setTitle("Edit item");
                 mItem = editItem;
                 mNameField.setText(mItem.getName());
                 mDescriptionField.setText(mItem.getDescription());
