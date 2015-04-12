@@ -51,7 +51,6 @@ public class Item implements Parcelable {
         dest.writeValue(mCategory);
     }
 
-    @SuppressWarnings("unused")
     public static final Parcelable.Creator<Item> CREATOR = new Parcelable.Creator<Item>() {
         @Override
         public Item createFromParcel(Parcel in) {

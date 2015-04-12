@@ -1,12 +1,9 @@
 package com.imozerov.catalogapp.ui.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.support.v4.content.Loader;
 import android.support.v4.util.LongSparseArray;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.CursorTreeAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.imozerov.catalogapp.R;
@@ -44,7 +40,7 @@ public class CatalogAdapter extends CursorTreeAdapter {
         mInflater = LayoutInflater.from(activity);
         mActivity = new WeakReference<CatalogActivity>(activity);
         mGroupMap = new LongSparseArray<>();
-        mCatalogView = new WeakReference<ExpandableListView>(catalogView) ;
+        mCatalogView = new WeakReference<ExpandableListView>(catalogView);
     }
 
     @Override
@@ -116,12 +112,12 @@ public class CatalogAdapter extends CursorTreeAdapter {
     }
 
     @Override
-    public void onGroupExpanded(int groupPosition){
+    public void onGroupExpanded(int groupPosition) {
         if (mIsSearch) {
             super.onGroupExpanded(groupPosition);
             return;
         }
-        if(groupPosition != mLastExpandedGroupPosition){
+        if (groupPosition != mLastExpandedGroupPosition) {
             mCatalogView.get().collapseGroup(mLastExpandedGroupPosition);
         }
 
