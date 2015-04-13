@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,12 +16,14 @@ import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.imozerov.catalogapp.BuildConfig;
 import com.imozerov.catalogapp.R;
 import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class ItemViewActivity extends ActionBarActivity implements View.OnClickListener {
@@ -116,7 +119,11 @@ public class ItemViewActivity extends ActionBarActivity implements View.OnClickL
                 ArrayList<Uri> images = new ArrayList<>();
                 if (mItem.getImages() != null) {
                     for (String path : mItem.getImages()) {
-                        images.add(Uri.parse(path));
+                        Uri imageUri = Uri.fromFile(new File(path));
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "Image uri: " + imageUri);
+                        }
+                        images.add(imageUri);
                     }
                 }
                 sharingIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, images);
