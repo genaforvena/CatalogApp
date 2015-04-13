@@ -20,4 +20,8 @@
     <string name="title_activity_about">About</string>
     <string name="author_name">Ilya Mozerov</string>
     <string name="year">(2015)</string>
+    <string name="title_activity_image_view">ImageViewActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 </resources>

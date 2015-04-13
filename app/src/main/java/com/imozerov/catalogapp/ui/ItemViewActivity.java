@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,20 +20,22 @@ import com.imozerov.catalogapp.models.Item;
 import com.imozerov.catalogapp.services.DatabaseUpdateService;
 import com.imozerov.catalogapp.utils.Constants;
 import com.imozerov.catalogapp.utils.LoadImageBitmapAsyncTask;
-import com.imozerov.catalogapp.utils.OnSwipeTouchListener;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class ItemViewActivity extends ActionBarActivity {
+public class ItemViewActivity extends ActionBarActivity implements View.OnClickListener {
     private static final String TAG = ItemViewActivity.class.getName();
 
     public static final String ITEM_KEY = TAG + ".item";
     public static final String DELETED_ITEM_KEY = TAG + ".deletedItem";
     public static final String DELETED_CATEGORY_KEY = TAG + ".deletedCategory";
+    public static final String SELECTED_IMAGE = TAG + ".selected_image";
 
     private TextView mItemName;
-    private ImageView mItemImage;
+    private ImageView mItemImage1;
+    private ImageView mItemImage2;
+    private ImageView mItemImage3;
+    private ImageView mItemImage4;
     private TextView mItemDescription;
     private Item mItem;
     private ShareActionProvider mShareActionProvider;
@@ -45,25 +48,49 @@ public class ItemViewActivity extends ActionBarActivity {
         mItem = getIntent().getParcelableExtra(ITEM_KEY);
 
         mItemName = (TextView) findViewById(R.id.activity_item_name);
-        mItemImage = (ImageView) findViewById(R.id.activity_item_image);
+        mItemImage1 = (ImageView) findViewById(R.id.activity_item_image1);
+        mItemImage1.setOnClickListener(this);
+        mItemImage2 = (ImageView) findViewById(R.id.activity_item_image2);
+        mItemImage2.setOnClickListener(this);
+        mItemImage3 = (ImageView) findViewById(R.id.activity_item_image3);
+        mItemImage3.setOnClickListener(this);
+        mItemImage4 = (ImageView) findViewById(R.id.activity_item_image4);
+        mItemImage4.setOnClickListener(this);
         mItemDescription = (TextView) findViewById(R.id.activity_item_description);
 
         mItemName.setText(mItem.getName());
         mItemDescription.setText(mItem.getDescription());
 
         if (mItem.getImages() != null && !mItem.getImages().isEmpty()) {
-            new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.getImages().next());
-            mItemImage.setOnTouchListener(new OnSwipeTouchListener(this) {
-                @Override
-                public void onSwipeRight() {
-                    new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.getImages().previous());
+            if (mItem.getImages() != null && !mItem.getImages().isEmpty()) {
+                int imagesSize = mItem.getImages().size();
+                if (imagesSize == 1) {
+                    new LoadImageBitmapAsyncTask(mItemImage1).execute(mItem.getImages().get(0));
+                    mItemImage2.setVisibility(View.GONE);
+                    mItemImage3.setVisibility(View.GONE);
+                    mItemImage4.setVisibility(View.GONE);
+                } else if (imagesSize == 2) {
+                    new LoadImageBitmapAsyncTask(mItemImage1).execute(mItem.getImages().get(0));
+                    new LoadImageBitmapAsyncTask(mItemImage2).execute(mItem.getImages().get(1));
+                    mItemImage3.setVisibility(View.GONE);
+                    mItemImage4.setVisibility(View.GONE);
+                } else if (imagesSize == 3) {
+                    new LoadImageBitmapAsyncTask(mItemImage1).execute(mItem.getImages().get(0));
+                    new LoadImageBitmapAsyncTask(mItemImage2).execute(mItem.getImages().get(1));
+                    new LoadImageBitmapAsyncTask(mItemImage3).execute(mItem.getImages().get(2));
+                    mItemImage4.setVisibility(View.GONE);
+                } else if (imagesSize == 4) {
+                    new LoadImageBitmapAsyncTask(mItemImage1).execute(mItem.getImages().get(0));
+                    new LoadImageBitmapAsyncTask(mItemImage2).execute(mItem.getImages().get(1));
+                    new LoadImageBitmapAsyncTask(mItemImage3).execute(mItem.getImages().get(2));
+                    new LoadImageBitmapAsyncTask(mItemImage4).execute(mItem.getImages().get(3));
                 }
-
-                @Override
-                public void onSwipeLeft() {
-                    new LoadImageBitmapAsyncTask(mItemImage).execute(mItem.getImages().next());
-                }
-            });
+            }
+        } else {
+            mItemImage1.setVisibility(View.GONE);
+            mItemImage2.setVisibility(View.GONE);
+            mItemImage3.setVisibility(View.GONE);
+            mItemImage4.setVisibility(View.GONE);
         }
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -122,5 +149,12 @@ public class ItemViewActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent(this, ImageViewActivity.class);
+        intent.putExtra(SELECTED_IMAGE, (String) v.getTag());
+        startActivity(intent);
     }
 }
