@@ -72,17 +72,51 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 
     private void addCategoriesAndItems(SQLiteDatabase db) {
         ContentValues values = new ContentValues();
+
+        //CATEGORY 1
         values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_NAME, "Category 1");
+        // IS_USER_DEFINED
         values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_IS_USER_DEFINED, 0);
+        // IMAGE IF NEEDED. NEED TO CREATE BITMAP ALSO
+        // values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_IMAGE, new Bitmap());
         db.insert(MySQLiteOpenHelper.TABLE_CATEGORIES, null, values);
-        for (int i = 0; i < 4; i++) {
-            values = new ContentValues();
-            values.put(MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID, 1);
-            values.put(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION, "Test test" + i);
-            values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED, 0);
-            values.put(MySQLiteOpenHelper.ITEMS_COLUMN_NAME, "item" + i);
-            db.insert(MySQLiteOpenHelper.TABLE_ITEMS, null,
-                    values);
-        }
+
+        // ITEM 1
+        values = new ContentValues();
+        // BELONG TO CATEGORY 1
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID, 1);
+        // HAS DESCRIPTION "Test test"
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION, "Test test");
+        // IS_USER_DEFIENED
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED, 0);
+        // ITEM NAME
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_NAME, "Item 1");
+        // Item image if needed. image path should be string representing path to image file on device.
+        // values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IMAGE_1, item_image_path);
+        db.insert(MySQLiteOpenHelper.TABLE_ITEMS, null,
+                values);
+
+        //CATEGORY 2
+        values = new ContentValues();
+        // NAME
+        values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_NAME, "Category 2");
+        // IS_USER_DEFINED
+        values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_IS_USER_DEFINED, 0);
+        // IMAGE IF NEEDED. NEED TO CREATE BITMAP ALSO
+        // values.put(MySQLiteOpenHelper.CATEGORIES_COLUMN_IMAGE, new Bitmap());
+        db.insert(MySQLiteOpenHelper.TABLE_CATEGORIES, null, values);
+
+        // ITEM 2
+        values = new ContentValues();
+        // BELONG TO CATEGORY 2
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_CATEGORY_ID, 2);
+        // HAS DESCRIPTION "Test test"
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_DESCRIPTION, "Test test");
+        // IS_USER_DEFIENED
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_IS_USER_DEFINED, 0);
+        // ITEM NAME
+        values.put(MySQLiteOpenHelper.ITEMS_COLUMN_NAME, "Item 2");
+        db.insert(MySQLiteOpenHelper.TABLE_ITEMS, null,
+                values);
     }
 }
